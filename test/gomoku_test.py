@@ -25,6 +25,8 @@ class TestGomoku(unittest.TestCase):
             'save_weights_path': './tmp',
             'max_sample_pool_size': 10000,
             'l2': 1e-4,
+            'lr': 1e-3,
+            'sample_pool_file': './tmp',
         })
         self.env = GomokuEnv(self.args)
         self.nnet = GomokuNNet(self.env, self.args)

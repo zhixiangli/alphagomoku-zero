@@ -19,5 +19,5 @@ class Env:
     def available_actions(self, board):
         raise NotImplementedError()
 
-    def log_status(self, board, proba):
+    def log_status(self, board, counts, actions):
         raise NotImplementedError()

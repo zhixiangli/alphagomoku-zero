@@ -3,6 +3,8 @@
 
 import logging
 
+import numpy
+
 from alphazero.env import Env
 
 
@@ -48,11 +50,18 @@ class GomokuEnv(Env):
         stones = set([stone[1:] for stone in board.split(self.semicolon)])
         return [i for i in range(self.args.rows * self.args.columns) if self.hex_action(i) not in stones]
 
-    def log_status(self, board, proba):
+    def log_status(self, board, counts, actions):
         logging.info("board status: %s", board)
+
         board = self.to_board(board)
         for row in board:
             logging.info(''.join(row))
+
+        visited = numpy.zeros(self.args.rows * self.args.columns)
+        visited[actions] = counts
+        for i in range(self.args.rows):
+            row = visited[i * self.args.columns:(i + 1) * self.args.columns]
+            logging.info(','.join(["%3d" % r for r in row]))
 
     def to_board(self, sgf):
         board = [[ChessType.EMPTY] * self.args.columns for _ in range(self.args.rows)]

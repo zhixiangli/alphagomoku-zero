@@ -53,7 +53,7 @@ class MockEnv(Env):
     def available_actions(self, board):
         return [i for i in range(len(board)) if board[i] == ChessType.EMPTY]
 
-    def log_status(self, board, proba):
+    def log_status(self, board, counts, actions):
         pass
 
 

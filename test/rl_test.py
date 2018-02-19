@@ -3,6 +3,7 @@
 
 import unittest
 
+import numpy
 from dotdict import dotdict
 
 from gomoku.env import GomokuEnv
@@ -24,6 +25,8 @@ class TestRL(unittest.TestCase):
             'save_weights_path': './tmp',
             'max_sample_pool_size': 10000,
             'l2': 1e-4,
+            'lr': 1e-3,
+            'sample_pool_file': './tmp',
         })
         self.env = GomokuEnv(self.args)
         self.nnet = GomokuNNet(self.env, self.args)
@@ -44,9 +47,17 @@ class TestRL(unittest.TestCase):
 
     def test_augment_board(self):
         sgf = "B[12];W[02]"
-        expected = {'B[12];W[02]', 'B[14];W[04]', 'B[21];W[20]', 'B[25];W[26]', 'B[41];W[40]', 'B[45];W[46]',
-                    'B[52];W[62]', 'B[54];W[64]'}
-        self.assertEqual(expected, set(self.rl.augment_board(sgf)))
+        expected = ['B[25];W[26]', 'B[21];W[20]', 'B[54];W[64]', 'B[52];W[62]', 'B[41];W[40]', 'B[45];W[46]',
+                    'B[12];W[02]', 'B[14];W[04]']
+
+        self.assertEqual(expected, self.rl.augment_board(sgf))
+
+    def test_augment_policy(self):
+        pi = numpy.ones((self.args.rows, self.args.columns))
+        pi[1][2] = pi[0][2] = 0
+        for p in self.rl.augment_policy(pi):
+            x = p.reshape(self.args.rows, self.args.columns)
+            print(x)
 
 
 if __name__ == '__main__':

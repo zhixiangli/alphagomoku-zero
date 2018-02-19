@@ -15,7 +15,7 @@ from keras.regularizers import l2
 from alphazero.nnet import NNet
 from gomoku.env import ChessType
 
-numpy.random.seed(1337)
+numpy.random.seed(1337)  # for reproducibility
 
 
 class GomokuNNet(NNet):
@@ -26,6 +26,7 @@ class GomokuNNet(NNet):
         self.model = self.build()
 
     def build(self):
+
         def build_residual_block(input):
             block = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_first',
                            kernel_regularizer=l2(self.args.l2))(input)
@@ -64,7 +65,7 @@ class GomokuNNet(NNet):
         value = Dense(1, activation='tanh')(value)
 
         model = Model(inputs=input, outputs=[policy, value])
-        model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam())
+        model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam(lr=self.args.lr))
         model.summary()
         return model
 

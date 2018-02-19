@@ -24,9 +24,8 @@ class MCTS:
     def simulate(self, board, player):
         for _ in range(self.args.simulation_num):
             self.search(board, player)
-        proba = self.visit_count[board] / sum(self.visit_count[board])
-        self.env.log_status(board, proba)
-        return self.available_actions[board], proba
+        self.env.log_status(board, numpy.copy(self.visit_count[board]), numpy.copy(self.available_actions[board]))
+        return numpy.copy(self.available_actions[board]), numpy.copy(self.visit_count[board])
 
     def search(self, board, player):
         if board not in self.prior_probability:  # leaf
@@ -64,8 +63,7 @@ class MCTS:
         proba, value = self.nnet.predict([board, player])
         actions = self.env.available_actions(board)
         self.available_actions[board] = actions
-        self.prior_probability[board] = proba[actions]
-        self.prior_probability[board] = self.prior_probability[board] / sum(self.prior_probability[board])
+        self.prior_probability[board] = proba[actions] / sum(proba[actions])
         self.total_visit_count[board] = 1
         self.mean_action_value[board] = numpy.zeros(len(actions))
         self.visit_count[board] = numpy.zeros(len(actions))
