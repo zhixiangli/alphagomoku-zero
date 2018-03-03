@@ -29,10 +29,10 @@ class BattleAgent:
             if not line:
                 continue
             msg = json.loads(line)
-            if msg.command == Command.NEXT_BLACK.name:
-                self.next(msg.chessboard, ChessType.BLACK)
-            elif msg.command == Command.NEXT_WHITE.name:
-                self.next(msg.chessboard, ChessType.WHITE)
+            if msg['command'] == Command.NEXT_BLACK.name:
+                print(self.next(msg['chessboard'], ChessType.BLACK), flush=True)
+            elif msg['command'] == Command.NEXT_WHITE.name:
+                print(self.next(msg['chessboard'], ChessType.WHITE), flush=True)
 
     def next(self, sgf, player):
         raise NotImplementedError()
@@ -49,7 +49,8 @@ class GomokuBattleAgent(BattleAgent):
     def next(self, sgf, player):
         actions, counts = self.mcts.simulate(sgf, player)
         index = numpy.argmax(counts)
-        return actions[index]
+        action = actions[index]
+        return {'rowIndex': action // self.args.rows, 'columnIndex': action % self.args.rows}
 
 
 if __name__ == '__main__':
@@ -68,6 +69,7 @@ if __name__ == '__main__':
         console_handler.setFormatter(formatter)
         root_logger.addHandler(console_handler)
         """
+
 
     parser = argparse.ArgumentParser()
 
@@ -99,6 +101,7 @@ if __name__ == '__main__':
 
     env = GomokuEnv(args)
     nnet = GomokuNNet(env, args)
+    nnet.load_weights(args.save_weights_path)
 
     if args.is_battle:
         GomokuBattleAgent(nnet, env, args).start()

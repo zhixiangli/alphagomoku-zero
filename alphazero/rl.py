@@ -19,11 +19,11 @@ class RL:
         self.nnet = nnet
         self.env = env
         self.args = args
-        self.nnet.load_weights(self.args.save_weights_path)
+        self.sample_pool = deque(maxlen=args.max_sample_pool_size)
 
-        self.sample_pool = self.read_sample_pool()
-        if not self.sample_pool:
-            self.sample_pool = deque(maxlen=args.max_sample_pool_size)
+        persisted_sample_pool = self.read_sample_pool()
+        if persisted_sample_pool:
+            self.sample_pool.extend(persisted_sample_pool)
         logging.info("samples currsize: %d, maxsize: %d", len(self.sample_pool), self.sample_pool.maxlen)
 
     def play_against_itself(self):
@@ -38,9 +38,9 @@ class RL:
             boards.append(board)
             players.append(player)
             policies.append(policy)
-
-            pi = 0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
-            action = actions[numpy.argmax(pi)]
+            # action = actions[numpy.argmax(0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi))))]
+            action = numpy.random.choice(actions,
+                                         p=0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi))))
 
             next_board, next_player = self.env.next_state(board, action, player)
             winner = self.env.is_terminal_state(next_board, action, player)

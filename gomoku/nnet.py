@@ -66,7 +66,7 @@ class GomokuNNet(NNet):
 
         model = Model(inputs=input, outputs=[policy, value])
         model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam(lr=self.args.lr))
-        model.summary()
+        # model.summary()
         return model
 
     def train(self, data):
