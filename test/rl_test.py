@@ -55,9 +55,14 @@ class TestRL(unittest.TestCase):
     def test_augment_policy(self):
         pi = numpy.ones((self.args.rows, self.args.columns))
         pi[1][2] = pi[0][2] = 0
-        for p in self.rl.augment_policy(pi):
+        expected = (
+            ((2, 5), (2, 6)), ((2, 1), (2, 0)), ((5, 4), (6, 4)), ((5, 2), (6, 2)), ((4, 1), (4, 0)), ((4, 5), (4, 6)),
+            ((1, 2), (0, 2)), ((1, 4), (0, 4)),)
+        for i, p in enumerate(self.rl.augment_policy(pi)):
+            self.assertEqual(numpy.count_nonzero(p == 0), 2)
             x = p.reshape(self.args.rows, self.args.columns)
-            print(x)
+            for loc in expected[i]:
+                self.assertEqual(x[loc[0]][loc[1]], 0)
 
 
 if __name__ == '__main__':

@@ -77,6 +77,8 @@ class TestAlphaZero(unittest.TestCase):
             'rows': 1,
             'columns': 3,
             'max_sample_pool_size': 100000,
+            'sample_pool_file': '',
+            'temp_step': 5,
         })
         self.mcts = MCTS(self.nnet, self.env, self.args)
         self.rl = RL(self.nnet, self.env, self.args)
