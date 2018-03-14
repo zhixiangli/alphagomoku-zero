@@ -48,15 +48,16 @@ class GomokuBattleAgent(BattleAgent):
 
     def next(self, sgf, player):
         actions, counts = self.mcts.simulate(sgf, player)
-        index = numpy.argmax(counts)
+        pi = counts / sum(counts)
+        index = numpy.argmax(0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi))))
         action = actions[index]
         return {'rowIndex': action // self.args.rows, 'columnIndex': action % self.args.rows}
 
 
 if __name__ == '__main__':
 
-    def init_logging():
-        formatter = logging.Formatter("%(asctime)s - %(pathname)s:%(lineno)s - %(levelname)s - %(message)s")
+    def init_logging(args):
+        formatter = logging.Formatter("%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s")
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)
 
@@ -64,39 +65,41 @@ if __name__ == '__main__':
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
 
-        """
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(formatter)
-        root_logger.addHandler(console_handler)
-        """
+        if not args.is_battle:
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_handler.setFormatter(formatter)
+            root_logger.addHandler(console_handler)
 
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-rows', type=int, default=6)
-    parser.add_argument('-columns', type=int, default=6)
-    parser.add_argument('-n_in_row', type=int, default=4)
-
-    parser.add_argument('-simulation_num', type=int, default=200)
-    parser.add_argument('-history_num', type=int, default=1)
-    parser.add_argument('-c_puct', type=float, default=1)
-    parser.add_argument('-max_sample_pool_size', type=int, default=10000)
-    parser.add_argument('-batch_size', type=int, default=1024)
-    parser.add_argument('-epochs', type=int, default=5)
-    parser.add_argument('-lr', type=float, default=1e-3)
-    parser.add_argument('-l2', type=float, default=1e-6)
-    parser.add_argument('-save_weights_interval', type=int, default=10)
-    parser.add_argument('-conv_filters', type=int, default=32)
-    parser.add_argument('-conv_kernel', default=(3, 3))
-    parser.add_argument('-residual_block_num', type=int, default=2)
+    parser.add_argument('-rows', type=int, default=15)
+    parser.add_argument('-columns', type=int, default=15)
+    parser.add_argument('-n_in_row', type=int, default=5)
     parser.add_argument('-is_battle', type=int, default=0)
+
     parser.add_argument('-save_weights_path', default='./data/model')
     parser.add_argument('-sample_pool_file', default='./data/samples.pkl')
+    parser.add_argument('-persist_interval', type=int, default=10)
     parser.add_argument('-logpath', default='./data/gomoku.log')
+
+    parser.add_argument('-batch_size', type=int, default=512)
+    parser.add_argument('-epochs', type=int, default=5)
+    parser.add_argument('-lr', type=float, default=1e-3)
+    parser.add_argument('-l2', type=float, default=1e-4)
+    parser.add_argument('-conv_filters', type=int, default=64)
+    parser.add_argument('-conv_kernel', default=(3, 3))
+    parser.add_argument('-residual_block_num', type=int, default=4)
+
+    parser.add_argument('-simulation_num', type=int, default=400)
+    parser.add_argument('-history_num', type=int, default=1)
+    parser.add_argument('-c_puct', type=float, default=1)
+    parser.add_argument('-max_sample_pool_size', type=int, default=200000)
+    parser.add_argument('-temp_step', type=int, default=5)
 
     args = parser.parse_args()
 
-    init_logging()
+    init_logging(args)
     logging.info(args)
 
     env = GomokuEnv(args)
