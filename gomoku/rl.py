@@ -1,9 +1,6 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
-import logging
-import os
-import pickle
 
 import numpy
 
@@ -58,14 +55,3 @@ class GomokuRL(RL):
             policies.append(p.flatten())
             policies.append(numpy.fliplr(p).flatten())
         return policies
-
-    def persist_sample_pool(self, samples):
-        with open(self.args.sample_pool_file, 'wb') as f:
-            pickle.dump(samples, f)
-
-    def read_sample_pool(self):
-        if not os.path.exists(self.args.sample_pool_file):
-            return None
-        with open(self.args.sample_pool_file, 'rb') as f:
-            logging.info("load samples from %s", self.args.sample_pool_file)
-            return pickle.load(f)

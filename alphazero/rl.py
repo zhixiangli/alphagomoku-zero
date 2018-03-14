@@ -2,9 +2,13 @@
 #  -*- coding: utf-8 -*-
 
 
+import copy
 import itertools
 import logging
+import os
+import pickle
 import random
+import threading
 from collections import deque
 
 import numpy
@@ -20,6 +24,7 @@ class RL:
         self.env = env
         self.args = args
         self.sample_pool = deque(maxlen=args.max_sample_pool_size)
+        self.sample_pool_persistence_lock = threading.Lock()
 
         persisted_sample_pool = self.read_sample_pool()
         if persisted_sample_pool:
@@ -38,9 +43,9 @@ class RL:
             boards.append(board)
             players.append(player)
             policies.append(policy)
-            # action = actions[numpy.argmax(0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi))))]
-            action = numpy.random.choice(actions,
-                                         p=0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi))))
+
+            proba = 0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
+            action = actions[numpy.argmax(proba)] if i >= self.args.temp_step else numpy.random.choice(actions, p=proba)
 
             next_board, next_player = self.env.next_state(board, action, player)
             winner = self.env.is_terminal_state(next_board, action, player)
@@ -56,19 +61,29 @@ class RL:
             samples = self.play_against_itself()
             augmented_data = self.augment_samples(samples)
             self.sample_pool.extend(augmented_data)
-            self.persist_sample_pool(self.sample_pool)
             logging.info("current sample pool size: %d", len(self.sample_pool))
             if self.args.batch_size > len(self.sample_pool):
                 continue
             self.nnet.train(random.sample(self.sample_pool, self.args.batch_size))
-            if i % self.args.save_weights_interval == 0:
+            if (i + 1) % self.args.persist_interval == 0:
+                persist_sample_pool_thread = threading.Thread(target=self.persist_sample_pool,
+                                                              args=[copy.deepcopy(self.sample_pool)])
+                persist_sample_pool_thread.start()
                 self.nnet.save_weights(self.args.save_weights_path)
 
     def augment_samples(self, samples):
         return samples
 
-    def persist_sample_pool(self, pool):
-        pass
+    def persist_sample_pool(self, samples):
+        with self.sample_pool_persistence_lock:
+            logging.info("persist sample pool start")
+            with open(self.args.sample_pool_file, 'wb') as f:
+                pickle.dump(samples, f)
+            logging.info("persist sample pool done")
 
     def read_sample_pool(self):
-        pass
+        if not os.path.exists(self.args.sample_pool_file):
+            return None
+        with open(self.args.sample_pool_file, 'rb') as f:
+            logging.info("load samples from %s", self.args.sample_pool_file)
+            return pickle.load(f)
