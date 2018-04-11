@@ -80,22 +80,22 @@ if __name__ == '__main__':
 
     parser.add_argument('-save_weights_path', default='./data/model')
     parser.add_argument('-sample_pool_file', default='./data/samples.pkl')
-    parser.add_argument('-persist_interval', type=int, default=10)
+    parser.add_argument('-persist_interval', type=int, default=50)
     parser.add_argument('-logpath', default='./data/gomoku.log')
 
-    parser.add_argument('-batch_size', type=int, default=512)
+    parser.add_argument('-batch_size', type=int, default=1024)
     parser.add_argument('-epochs', type=int, default=5)
-    parser.add_argument('-lr', type=float, default=1e-3)
+    parser.add_argument('-lr', type=float, default=5e-3)
     parser.add_argument('-l2', type=float, default=1e-4)
-    parser.add_argument('-conv_filters', type=int, default=64)
+    parser.add_argument('-conv_filters', type=int, default=256)
     parser.add_argument('-conv_kernel', default=(3, 3))
-    parser.add_argument('-residual_block_num', type=int, default=4)
+    parser.add_argument('-residual_block_num', type=int, default=2)
 
-    parser.add_argument('-simulation_num', type=int, default=400)
-    parser.add_argument('-history_num', type=int, default=1)
+    parser.add_argument('-simulation_num', type=int, default=500)
+    parser.add_argument('-history_num', type=int, default=2)
     parser.add_argument('-c_puct', type=float, default=1)
-    parser.add_argument('-max_sample_pool_size', type=int, default=200000)
-    parser.add_argument('-temp_step', type=int, default=5)
+    parser.add_argument('-max_sample_pool_size', type=int, default=360000)
+    parser.add_argument('-temp_step', type=int, default=2)
 
     args = parser.parse_args()
 
@@ -109,4 +109,4 @@ if __name__ == '__main__':
     if args.is_battle:
         GomokuBattleAgent(nnet, env, args).start()
     else:
-        GomokuRL(nnet, env, args).reinforcement_learning()
+        GomokuRL(nnet, env, args).start()

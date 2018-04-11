@@ -5,12 +5,14 @@
 import numpy
 
 from alphazero.rl import RL
+from gomoku.env import ChessType
 
 
 class GomokuRL(RL):
 
     def augment_samples(self, samples):
         augmented = []
+        samples += self.reverse_color(samples)
         for sample in samples:
             board, player, policy, value = sample
             boards = self.augment_board(board)
@@ -55,3 +57,13 @@ class GomokuRL(RL):
             policies.append(p.flatten())
             policies.append(numpy.fliplr(p).flatten())
         return policies
+
+    def reverse_color(self, samples):
+        reversed_samples = []
+        for sample in samples:
+            board, player, policy, value = sample
+            reversed_board = ''.join(list(
+                (map(lambda c: self.env.next_player(c) if c == ChessType.WHITE or c == ChessType.BLACK else c, board))))
+            reversed_player = self.env.next_player(player)
+            reversed_samples.append((reversed_board, reversed_player, policy, value))
+        return reversed_samples

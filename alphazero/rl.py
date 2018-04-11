@@ -55,7 +55,7 @@ class RL:
                 return [i for i in zip(boards, players, policies, values)]
             board, player = next_board, next_player
 
-    def reinforcement_learning(self):
+    def start(self):
         for i in itertools.count():
             logging.info("iteration %d:", i)
             samples = self.play_against_itself()
