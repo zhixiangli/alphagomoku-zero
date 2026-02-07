@@ -65,7 +65,7 @@ class GomokuNNet(NNet):
         value = Dense(1, activation='tanh')(value)
 
         model = Model(inputs=input, outputs=[policy, value])
-        model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam(lr=self.args.lr))
+        model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam(learning_rate=self.args.lr))
         # model.summary()
         return model
 
