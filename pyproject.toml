@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=78.1.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alphagomoku-zero"
+version = "0.1.0"
+description = "AlphaZero-style Gomoku AI using Monte Carlo Tree Search and deep neural networks"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "keras>=3.13.1",
+    "dotdict>=0.1",
+]
+
+[project.optional-dependencies]
+tensorflow = ["tensorflow>=2.16"]
+jax = ["jax[cpu]>=0.4"]
+torch = ["torch>=2.1"]
+dev = [
+    "pytest>=7.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["alphazero*", "gomoku*"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
