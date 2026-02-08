@@ -2,7 +2,6 @@
 #  -*- coding: utf-8 -*-
 
 
-import copy
 import itertools
 import logging
 import os
@@ -14,7 +13,6 @@ from collections import deque
 import numpy
 
 from alphazero.mcts import MCTS
-from gomoku.env import ChessType
 
 
 class RL:
@@ -31,13 +29,16 @@ class RL:
             self.sample_pool.extend(persisted_sample_pool)
         logging.info("samples currsize: %d, maxsize: %d", len(self.sample_pool), self.sample_pool.maxlen)
 
+    def create_mcts(self):
+        return MCTS(self.nnet, self.env, self.args)
+
     def play_against_itself(self):
         board, player = self.env.get_initial_state()
         boards, players, policies = [], [], []
-        mcts = MCTS(self.nnet, self.env, self.args)
+        mcts = self.create_mcts()
         for i in itertools.count():
             actions, counts = mcts.simulate(board, player)
-            pi = counts / sum(counts)
+            pi = counts / numpy.sum(counts)
             policy = numpy.zeros(self.args.rows * self.args.columns)
             policy[actions] = pi
             boards.append(board)
@@ -45,18 +46,21 @@ class RL:
             policies.append(policy)
 
             proba = 0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
+            proba /= proba.sum()
             action = actions[numpy.argmax(proba)] if i >= self.args.temp_step else numpy.random.choice(actions, p=proba)
 
             next_board, next_player = self.env.next_state(board, action, player)
             winner = self.env.is_terminal_state(next_board, action, player)
             if winner is not None:
                 logging.info("winner: %c", winner)
-                values = [0 if winner == ChessType.EMPTY else (1 if player == winner else -1) for player in players]
-                return [i for i in zip(boards, players, policies, values)]
+                player_set = set(players)
+                values = [0 if winner not in player_set else (1 if p == winner else -1) for p in players]
+                return list(zip(boards, players, policies, values))
             board, player = next_board, next_player
 
-    def start(self):
-        for i in itertools.count():
+    def start(self, num_iterations=None):
+        iterator = range(num_iterations) if num_iterations is not None else itertools.count()
+        for i in iterator:
             logging.info("iteration %d:", i)
             samples = self.play_against_itself()
             augmented_data = self.augment_samples(samples)
@@ -67,7 +71,7 @@ class RL:
             self.nnet.train(random.sample(self.sample_pool, self.args.batch_size))
             if (i + 1) % self.args.persist_interval == 0:
                 persist_sample_pool_thread = threading.Thread(target=self.persist_sample_pool,
-                                                              args=[copy.deepcopy(self.sample_pool)])
+                                                              args=[list(self.sample_pool)])
                 persist_sample_pool_thread.start()
                 self.nnet.save_weights(self.args.save_weights_path)
 
