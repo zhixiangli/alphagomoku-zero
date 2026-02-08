@@ -2,11 +2,11 @@
 #  -*- coding: utf-8 -*-
 
 import argparse
-import copy
 import json
 import logging
 import logging.handlers
 import sys
+from dataclasses import replace
 from enum import Enum, unique
 
 import numpy
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         nnet.load_checkpoint(config.save_checkpoint_path)
         GomokuBattleAgent(nnet, game, config).start()
     elif cli_args.eval:
-        config2 = copy.replace(
+        config2 = replace(
             config,
             save_checkpoint_path=cli_args.eval_checkpoint_path,
             simulation_num=cli_args.eval_simulation_num if cli_args.eval_simulation_num is not None else config.simulation_num,
