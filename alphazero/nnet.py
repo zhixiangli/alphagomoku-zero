@@ -45,7 +45,7 @@ class AlphaZeroNNet(NNet):
         self.model = self.build()
 
     def build(self):
-        input_shape = (self.args.history_num * 2 + 1, self.args.rows, self.args.columns)
+        input_shape = (2, self.args.rows, self.args.columns)
         action_space_size = self.args.rows * self.args.columns
 
         def build_residual_block(x):

@@ -66,13 +66,18 @@ class StubGame(Game):
             return 0
         return 1 if player == winner else -1
 
+    def get_canonical_form(self, board, player):
+        if player == _ChessType.BLACK:
+            return board
+        return "".join([self.next_player(c) if c in (_ChessType.BLACK, _ChessType.WHITE) else c for c in board])
+
 
 class StubNNet(NNet):
     def __init__(self, game, args):
         self.game = game
         self.args = args
 
-    def predict(self, data):
+    def predict(self, board):
         return numpy.array([1] * self.game.action_space_size), 0
 
     def train(self, data):

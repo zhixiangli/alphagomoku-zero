@@ -62,12 +62,9 @@ class TestRL(unittest.TestCase):
             for loc in expected[i]:
                 self.assertEqual(x[loc[0]][loc[1]], 0)
 
-    def test_reverse_color(self):
-        board, player, policy, value = self.game.reverse_color([("B[14];W[07];B[41]", "W", [1, 2, 3], 1)])[0]
-        self.assertEqual(value, 1)
-        self.assertEqual(policy, [1, 2, 3])
-        self.assertEqual(player, 'B')
-        self.assertEqual(board, "W[14];B[07];W[41]")
+    def test_reverse_color_removed(self):
+        """reverse_color is no longer needed with canonical form."""
+        self.assertFalse(hasattr(self.game, 'reverse_color'))
 
 
 if __name__ == '__main__':

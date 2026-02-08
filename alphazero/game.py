@@ -30,5 +30,12 @@ class Game:
     def augment_samples(self, samples):
         return samples
 
+    def get_canonical_form(self, board, player):
+        """Returns state from the perspective of the current player.
+
+        The neural net always sees the board as if it is Player 1.
+        """
+        raise NotImplementedError()
+
     def compute_reward(self, winner, player):
         raise NotImplementedError()

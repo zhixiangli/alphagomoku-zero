@@ -53,7 +53,8 @@ class MCTS:
         self.total_visit_count[board] += 1
 
     def __expand(self, board, player):
-        proba, value = self.nnet.predict([board, player])
+        canonical_board = self.game.get_canonical_form(board, player)
+        proba, value = self.nnet.predict(canonical_board)
         actions = self.game.available_actions(board)
         self.available_actions[board] = actions
         self.prior_probability[board] = proba[actions] / numpy.sum(proba[actions])
