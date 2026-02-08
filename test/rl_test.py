@@ -7,7 +7,7 @@ import numpy
 from dotdict import dotdict
 
 from gomoku.game import GomokuGame
-from gomoku.nnet import GomokuNNet
+from alphazero.nnet import AlphaZeroNNet
 
 
 class TestRL(unittest.TestCase):
@@ -28,7 +28,7 @@ class TestRL(unittest.TestCase):
             'sample_pool_file': './tmp',
         })
         self.game = GomokuGame(self.args)
-        self.nnet = GomokuNNet(self.game, self.args)
+        self.nnet = AlphaZeroNNet(self.game, self.args)
 
     def test_coordinate_transform(self):
         """

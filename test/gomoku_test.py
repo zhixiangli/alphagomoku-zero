@@ -10,7 +10,7 @@ import numpy
 from dotdict import dotdict
 
 from gomoku.game import GomokuGame, ChessType
-from gomoku.nnet import GomokuNNet
+from alphazero.nnet import AlphaZeroNNet
 
 
 class TestGomoku(unittest.TestCase):
@@ -31,7 +31,7 @@ class TestGomoku(unittest.TestCase):
             'sample_pool_file': './tmp',
         })
         self.game = GomokuGame(self.args)
-        self.nnet = GomokuNNet(self.game, self.args)
+        self.nnet = AlphaZeroNNet(self.game, self.args)
 
     def test_next_player(self):
         self.assertEqual(self.game.next_player(ChessType.BLACK), ChessType.WHITE)
@@ -77,7 +77,7 @@ class TestGomoku(unittest.TestCase):
         # Channel 0 (BLACK/current player): B[21] -> (2,1)
         # Channel 1 (WHITE/opponent): W[20] -> (2,0), W[11] -> (1,1)
         canonical = self.game.get_canonical_form('B[20];W[21];B[11]', ChessType.WHITE)
-        self.assertTrue(numpy.array_equal(self.nnet.fit_transform(canonical),
+        self.assertTrue(numpy.array_equal(self.game.fit_transform(canonical),
                                           numpy.array([[[0, 0, 0, ],
                                                         [0, 0, 0, ],
                                                         [0, 1, 0, ]],
@@ -90,7 +90,7 @@ class TestGomoku(unittest.TestCase):
         # Channel 0 (BLACK/current player): B[20] -> (2,0), B[11] -> (1,1)
         # Channel 1 (WHITE/opponent): W[21] -> (2,1)
         canonical = self.game.get_canonical_form('B[20];W[21];B[11]', ChessType.BLACK)
-        self.assertTrue(numpy.array_equal(self.nnet.fit_transform(canonical),
+        self.assertTrue(numpy.array_equal(self.game.fit_transform(canonical),
                                           numpy.array([[[0, 0, 0, ],
                                                         [0, 1, 0, ],
                                                         [1, 0, 0, ]],
@@ -100,7 +100,7 @@ class TestGomoku(unittest.TestCase):
                                                         [0, 1, 0, ]]])))
 
     def test_fit_transform_empty(self):
-        self.assertTrue(numpy.array_equal(self.nnet.fit_transform(''),
+        self.assertTrue(numpy.array_equal(self.game.fit_transform(''),
                                           numpy.zeros((2, 3, 3))))
 
     def test_get_canonical_form(self):

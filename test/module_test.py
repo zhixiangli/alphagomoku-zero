@@ -13,7 +13,6 @@ from alphazero.rl import RL
 from gomoku import configure_module
 from gomoku.config import GomokuConfig
 from gomoku.game import GomokuGame
-from gomoku.nnet import GomokuNNet
 
 
 # --------------- lightweight mocks ---------------
@@ -146,10 +145,10 @@ class TestAlphaZeroModule(unittest.TestCase):
 class TestGomokuModuleIntegration(unittest.TestCase):
 
     def test_configure_module_registers_gomoku(self):
-        """configure_module binds GomokuGame → GomokuNNet."""
+        """configure_module binds GomokuGame → AlphaZeroNNet."""
         module = AlphaZeroModule()
         configure_module(module)
-        self.assertIs(module.resolve_nnet_class(GomokuGame), GomokuNNet)
+        self.assertIs(module.resolve_nnet_class(GomokuGame), AlphaZeroNNet)
 
     def test_create_gomoku_trainer(self):
         """Full Gomoku trainer can be created via DI."""
@@ -160,10 +159,10 @@ class TestGomokuModuleIntegration(unittest.TestCase):
 
         self.assertIsInstance(trainer, RL)
         self.assertIsInstance(trainer.game, GomokuGame)
-        self.assertIsInstance(trainer.nnet, GomokuNNet)
+        self.assertIsInstance(trainer.nnet, AlphaZeroNNet)
 
     def test_decoupling_game_does_not_import_nnet(self):
-        """GomokuGame module has no dependency on GomokuNNet."""
+        """GomokuGame module has no dependency on nnet."""
         import gomoku.game as game_module
         with open(game_module.__file__) as f:
             source = f.read()
@@ -177,6 +176,12 @@ class TestGomokuModuleIntegration(unittest.TestCase):
             source = f.read()
         self.assertNotIn('GomokuNNet', source)
         self.assertNotIn('GomokuGame', source)
+
+    def test_gomoku_nnet_deleted(self):
+        """gomoku/nnet.py should no longer exist."""
+        import importlib
+        with self.assertRaises(ModuleNotFoundError):
+            importlib.import_module('gomoku.nnet')
 
 
 if __name__ == '__main__':

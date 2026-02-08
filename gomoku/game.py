@@ -132,6 +132,23 @@ class GomokuGame(Game):
         conv = numpy.convolve(matches.astype(int), kernel, mode='valid')
         return bool(numpy.any(conv >= n))
 
+    def fit_transform(self, board):
+        """Extract features from a canonical board.
+
+        Channel 0: current player's stones (BLACK in canonical form)
+        Channel 1: opponent's stones (WHITE in canonical form)
+        """
+        feature = numpy.zeros((2, self.args.rows, self.args.columns))
+        if board:
+            for stone in board.split(self.semicolon):
+                if stone:
+                    (x, y) = self.dec_action(stone)
+                    if stone[0] == ChessType.BLACK:
+                        feature[0][x][y] = 1
+                    elif stone[0] == ChessType.WHITE:
+                        feature[1][x][y] = 1
+        return feature
+
     # Data augmentation methods (merged from GomokuRL)
 
     def augment_samples(self, samples):

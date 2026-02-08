@@ -15,7 +15,6 @@ from alphazero.module import AlphaZeroModule
 from gomoku import configure_module
 from gomoku.config import GomokuConfig
 from gomoku.game import GomokuGame, ChessType
-from gomoku.nnet import GomokuNNet
 
 
 @unique

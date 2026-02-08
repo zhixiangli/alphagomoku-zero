@@ -6,6 +6,7 @@ import logging
 import os
 import time
 
+import numpy
 from keras.layers import Conv2D, BatchNormalization, Input, Activation, Flatten, Dense, Add
 from keras.models import Model
 from keras.optimizers import Adam
@@ -35,8 +36,7 @@ class AlphaZeroNNet(NNet):
     - Policy head (softmax over action space)
     - Value head (scalar tanh)
 
-    Subclasses must implement game-specific feature extraction in
-    train() and predict().
+    Delegates game-specific feature extraction to game.fit_transform().
     """
 
     def __init__(self, game, args):
@@ -87,6 +87,21 @@ class AlphaZeroNNet(NNet):
         model = Model(inputs=input_layer, outputs=[policy, value])
         model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam(learning_rate=self.args.lr))
         return model
+
+    def train(self, data):
+        boards, policies, values = zip(*data)
+        states = numpy.zeros((len(boards), 2, self.args.rows, self.args.columns))
+        for i in range(len(boards)):
+            states[i] = self.game.fit_transform(boards[i])
+        policies = numpy.array(policies)
+        values = numpy.array(values)
+        self.model.fit(x=states, y=[policies, values], batch_size=self.args.batch_size, epochs=self.args.epochs)
+
+    def predict(self, board):
+        states = numpy.zeros((1, 2, self.args.rows, self.args.columns))
+        states[0] = self.game.fit_transform(board)
+        policy, value = self.model.predict(states)
+        return policy[0], value[0]
 
     def save_checkpoint(self, filename):
         self.model.save_weights("%s.%s.weights.h5" % (filename, int(time.time() * 1000)))

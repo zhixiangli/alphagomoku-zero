@@ -39,3 +39,10 @@ class Game:
 
     def compute_reward(self, winner, player):
         raise NotImplementedError()
+
+    def fit_transform(self, board):
+        """Convert a canonical board into a feature tensor for the neural network.
+
+        Returns a numpy array of shape (2, rows, columns).
+        """
+        raise NotImplementedError()
