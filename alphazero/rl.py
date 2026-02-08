@@ -37,7 +37,7 @@ class RL:
         for i in itertools.count():
             actions, counts = mcts.simulate(board, player)
             pi = counts / numpy.sum(counts)
-            policy = numpy.zeros(self.game.action_space_size)
+            policy = numpy.zeros(self.args.rows * self.args.columns)
             policy[actions] = pi
             canonical_boards.append(self.game.get_canonical_form(board, player))
             players.append(player)
@@ -49,7 +49,7 @@ class RL:
             next_board, next_player = self.game.next_state(board, action, player)
             winner = self.game.is_terminal_state(next_board, action, player)
             if winner is not None:
-                logging.info("winner: %c", winner)
+                logging.info("winner: %s", winner)
                 values = numpy.array([self.game.compute_reward(winner, p) for p in players])
                 return [i for i in zip(canonical_boards, policies, values)]
             board, player = next_board, next_player

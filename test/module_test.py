@@ -31,10 +31,6 @@ class StubGame(Game):
         self.rows = 1
         self.columns = 3
 
-    @property
-    def action_space_size(self):
-        return self.rows * self.columns
-
     def next_player(self, player):
         return _ChessType.BLACK if player == _ChessType.WHITE else _ChessType.WHITE
 
@@ -49,7 +45,7 @@ class StubGame(Game):
         if action + 1 < len(board) and board[action + 1] == board[action]:
             return player
         if all(ch != _ChessType.EMPTY for ch in board):
-            return _ChessType.EMPTY
+            return Game.DRAW
         return None
 
     def get_initial_state(self):
@@ -60,11 +56,6 @@ class StubGame(Game):
 
     def log_status(self, board, counts, actions):
         pass
-
-    def compute_reward(self, winner, player):
-        if winner == _ChessType.EMPTY:
-            return 0
-        return 1 if player == winner else -1
 
     def get_canonical_form(self, board, player):
         if player == _ChessType.BLACK:
@@ -78,7 +69,7 @@ class StubNNet(NNet):
         self.args = args
 
     def predict(self, board):
-        return numpy.array([1] * self.game.action_space_size), 0
+        return numpy.array([1] * (self.args.rows * self.args.columns)), 0
 
     def train(self, data):
         pass

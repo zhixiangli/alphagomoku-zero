@@ -21,10 +21,6 @@ class GomokuGame(Game):
         self.semicolon = ';'
         self.directions = [[1, 1], [1, -1], [0, 1], [1, 0]]
 
-    @property
-    def action_space_size(self):
-        return self.args.rows * self.args.columns
-
     def next_player(self, player):
         assert player != ChessType.EMPTY
         return ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
@@ -45,7 +41,7 @@ class GomokuGame(Game):
         if any(self.is_win(action, player, direction, board_array) for direction in self.directions):
             return player
         if numpy.sum(board_array != ChessType.EMPTY) == self.args.rows * self.args.columns:
-            return ChessType.EMPTY
+            return Game.DRAW
         return None
 
     def get_initial_state(self):
@@ -72,11 +68,6 @@ class GomokuGame(Game):
         visited = visited.reshape(self.args.rows, self.args.columns)
         for row in visited:
             logging.info(','.join(["%3d" % r for r in row]))
-
-    def compute_reward(self, winner, player):
-        if winner == ChessType.EMPTY:
-            return 0
-        return 1 if player == winner else -1
 
     def get_canonical_form(self, board, player):
         """Returns board from the perspective of the current player.
