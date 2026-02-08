@@ -58,8 +58,14 @@ class MockEnv(Env):
 
 
 class MockNNet(NNet):
+    def train(self, data):
+        pass
+
     def predict(self, data):
         return numpy.array([1] * MockEnv.columns), 0
+
+    def save_weights(self, filename):
+        pass
 
     def load_weights(self, filename):
         pass
