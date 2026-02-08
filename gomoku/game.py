@@ -21,6 +21,10 @@ class GomokuGame(Game):
         self.semicolon = ';'
         self.directions = [[1, 1], [1, -1], [0, 1], [1, 0]]
 
+    @property
+    def action_space_size(self):
+        return self.args.rows * self.args.columns
+
     def next_player(self, player):
         assert player != ChessType.EMPTY
         return ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE

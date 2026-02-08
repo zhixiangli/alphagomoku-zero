@@ -4,6 +4,11 @@
 
 class Game:
 
+    @property
+    def action_space_size(self):
+        """Return the total number of possible actions in the game."""
+        raise NotImplementedError()
+
     def next_player(self, player):
         raise NotImplementedError()
 

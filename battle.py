@@ -12,6 +12,7 @@ import numpy
 
 from alphazero.mcts import MCTS
 from alphazero.rl import RL
+from gomoku.config import GomokuConfig
 from gomoku.game import GomokuGame, ChessType
 from gomoku.nnet import GomokuNNet
 
@@ -56,16 +57,16 @@ class GomokuBattleAgent(BattleAgent):
 
 if __name__ == '__main__':
 
-    def init_logging(args):
+    def init_logging(logpath, is_battle):
         formatter = logging.Formatter("%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s")
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)
 
-        file_handler = logging.FileHandler(args.logpath)
+        file_handler = logging.FileHandler(logpath)
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
 
-        if not args.is_battle:
+        if not is_battle:
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setFormatter(formatter)
             root_logger.addHandler(console_handler)
@@ -73,15 +74,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
+    # Application flags (not part of game/algorithm config)
+    parser.add_argument('-is_battle', type=int, default=0)
+    parser.add_argument('-logpath', default='./data/gomoku.log')
+
+    # Game-specific config (Gomoku)
     parser.add_argument('-rows', type=int, default=15)
     parser.add_argument('-columns', type=int, default=15)
     parser.add_argument('-n_in_row', type=int, default=5)
-    parser.add_argument('-is_battle', type=int, default=0)
 
+    # AlphaZero common config
     parser.add_argument('-save_weights_path', default='./data/model')
     parser.add_argument('-sample_pool_file', default='./data/samples.pkl')
     parser.add_argument('-persist_interval', type=int, default=50)
-    parser.add_argument('-logpath', default='./data/gomoku.log')
 
     parser.add_argument('-batch_size', type=int, default=1024)
     parser.add_argument('-epochs', type=int, default=5)
@@ -97,16 +102,39 @@ if __name__ == '__main__':
     parser.add_argument('-max_sample_pool_size', type=int, default=360000)
     parser.add_argument('-temp_step', type=int, default=2)
 
-    args = parser.parse_args()
+    cli_args = parser.parse_args()
 
-    init_logging(args)
-    logging.info(args)
+    init_logging(cli_args.logpath, cli_args.is_battle)
 
-    game = GomokuGame(args)
-    nnet = GomokuNNet(game, args)
-    nnet.load_weights(args.save_weights_path)
+    # Build typed config from CLI arguments
+    config = GomokuConfig(
+        rows=cli_args.rows,
+        columns=cli_args.columns,
+        n_in_row=cli_args.n_in_row,
+        simulation_num=cli_args.simulation_num,
+        c_puct=cli_args.c_puct,
+        temp_step=cli_args.temp_step,
+        batch_size=cli_args.batch_size,
+        epochs=cli_args.epochs,
+        max_sample_pool_size=cli_args.max_sample_pool_size,
+        persist_interval=cli_args.persist_interval,
+        history_num=cli_args.history_num,
+        lr=cli_args.lr,
+        l2=cli_args.l2,
+        conv_filters=cli_args.conv_filters,
+        conv_kernel=cli_args.conv_kernel,
+        residual_block_num=cli_args.residual_block_num,
+        save_weights_path=cli_args.save_weights_path,
+        sample_pool_file=cli_args.sample_pool_file,
+    )
 
-    if args.is_battle:
-        GomokuBattleAgent(nnet, game, args).start()
+    logging.info(config)
+
+    game = GomokuGame(config)
+    nnet = GomokuNNet(game, config)
+    nnet.load_weights(config.save_weights_path)
+
+    if cli_args.is_battle:
+        GomokuBattleAgent(nnet, game, config).start()
     else:
-        RL(nnet, game, args).start()
+        RL(nnet, game, config).start()
