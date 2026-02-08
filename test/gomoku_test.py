@@ -3,6 +3,7 @@
 
 import glob
 import os
+import tempfile
 import unittest
 
 import numpy
@@ -146,10 +147,8 @@ class TestGomoku(unittest.TestCase):
 
     def test_checkpoint_round_trip(self):
         """Checkpoint save and load should preserve model weights."""
-        prefix = '/tmp/test_gomoku_ckpt'
-        # Clean up any leftover files
-        for f in glob.glob(prefix + '*'):
-            os.remove(f)
+        tmpdir = tempfile.mkdtemp()
+        prefix = os.path.join(tmpdir, 'test_gomoku_ckpt')
 
         self.nnet.save_checkpoint(prefix)
         files = glob.glob(prefix + '*.weights.h5')
@@ -161,10 +160,13 @@ class TestGomoku(unittest.TestCase):
         # Clean up
         for f in files:
             os.remove(f)
+        os.rmdir(tmpdir)
 
     def test_checkpoint_load_missing(self):
         """load_checkpoint with no matching files should not raise."""
-        self.nnet.load_checkpoint('/tmp/nonexistent_model_prefix')
+        tmpdir = tempfile.mkdtemp()
+        self.nnet.load_checkpoint(os.path.join(tmpdir, 'nonexistent_model_prefix'))
+        os.rmdir(tmpdir)
 
 if __name__ == '__main__':
     unittest.main()
