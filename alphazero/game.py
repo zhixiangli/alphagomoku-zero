@@ -2,7 +2,7 @@
 #  -*- coding: utf-8 -*-
 
 
-class Env:
+class Game:
 
     def next_player(self, player):
         raise NotImplementedError()
@@ -20,4 +20,10 @@ class Env:
         raise NotImplementedError()
 
     def log_status(self, board, counts, actions):
+        raise NotImplementedError()
+
+    def augment_samples(self, samples):
+        return samples
+
+    def compute_reward(self, winner, player):
         raise NotImplementedError()

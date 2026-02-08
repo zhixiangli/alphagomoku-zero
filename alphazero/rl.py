@@ -14,14 +14,13 @@ from collections import deque
 import numpy
 
 from alphazero.mcts import MCTS
-from gomoku.env import ChessType
 
 
 class RL:
 
-    def __init__(self, nnet, env, args):
+    def __init__(self, nnet, game, args):
         self.nnet = nnet
-        self.env = env
+        self.game = game
         self.args = args
         self.sample_pool = deque(maxlen=args.max_sample_pool_size)
         self.sample_pool_persistence_lock = threading.Lock()
@@ -32,9 +31,9 @@ class RL:
         logging.info("samples currsize: %d, maxsize: %d", len(self.sample_pool), self.sample_pool.maxlen)
 
     def play_against_itself(self):
-        board, player = self.env.get_initial_state()
+        board, player = self.game.get_initial_state()
         boards, players, policies = [], [], []
-        mcts = MCTS(self.nnet, self.env, self.args)
+        mcts = MCTS(self.nnet, self.game, self.args)
         for i in itertools.count():
             actions, counts = mcts.simulate(board, player)
             pi = counts / sum(counts)
@@ -47,11 +46,11 @@ class RL:
             proba = 0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
             action = actions[numpy.argmax(proba)] if i >= self.args.temp_step else numpy.random.choice(actions, p=proba)
 
-            next_board, next_player = self.env.next_state(board, action, player)
-            winner = self.env.is_terminal_state(next_board, action, player)
+            next_board, next_player = self.game.next_state(board, action, player)
+            winner = self.game.is_terminal_state(next_board, action, player)
             if winner is not None:
                 logging.info("winner: %c", winner)
-                values = [0 if winner == ChessType.EMPTY else (1 if player == winner else -1) for player in players]
+                values = [self.game.compute_reward(winner, player) for player in players]
                 return [i for i in zip(boards, players, policies, values)]
             board, player = next_board, next_player
 
@@ -59,7 +58,7 @@ class RL:
         for i in itertools.count():
             logging.info("iteration %d:", i)
             samples = self.play_against_itself()
-            augmented_data = self.augment_samples(samples)
+            augmented_data = self.game.augment_samples(samples)
             self.sample_pool.extend(augmented_data)
             logging.info("current sample pool size: %d", len(self.sample_pool))
             if self.args.batch_size > len(self.sample_pool):
@@ -70,9 +69,6 @@ class RL:
                                                               args=[copy.deepcopy(self.sample_pool)])
                 persist_sample_pool_thread.start()
                 self.nnet.save_weights(self.args.save_weights_path)
-
-    def augment_samples(self, samples):
-        return samples
 
     def persist_sample_pool(self, samples):
         with self.sample_pool_persistence_lock:

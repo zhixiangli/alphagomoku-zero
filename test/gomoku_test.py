@@ -6,9 +6,8 @@ import unittest
 import numpy
 from dotdict import dotdict
 
-from gomoku.env import GomokuEnv, ChessType
+from gomoku.game import GomokuGame, ChessType
 from gomoku.nnet import GomokuNNet
-from gomoku.rl import GomokuRL
 
 
 class TestGomoku(unittest.TestCase):
@@ -28,47 +27,46 @@ class TestGomoku(unittest.TestCase):
             'lr': 1e-3,
             'sample_pool_file': './tmp',
         })
-        self.env = GomokuEnv(self.args)
-        self.nnet = GomokuNNet(self.env, self.args)
-        self.rl = GomokuRL(self.nnet, self.env, self.args)
+        self.game = GomokuGame(self.args)
+        self.nnet = GomokuNNet(self.game, self.args)
 
     def test_next_player(self):
-        self.assertEqual(self.env.next_player(ChessType.BLACK), ChessType.WHITE)
-        self.assertEqual(self.env.next_player(ChessType.WHITE), ChessType.BLACK)
+        self.assertEqual(self.game.next_player(ChessType.BLACK), ChessType.WHITE)
+        self.assertEqual(self.game.next_player(ChessType.WHITE), ChessType.BLACK)
 
     def test_next_state(self):
-        board, player = self.env.get_initial_state()
+        board, player = self.game.get_initial_state()
 
-        next_board, next_player = self.env.next_state(board, 6, player)
+        next_board, next_player = self.game.next_state(board, 6, player)
         self.assertEqual(next_player, ChessType.WHITE)
         self.assertEqual(next_board, 'B[20]')
 
-        next_board, next_player = self.env.next_state(next_board, 0, next_player)
+        next_board, next_player = self.game.next_state(next_board, 0, next_player)
         self.assertEqual(next_player, ChessType.BLACK)
         self.assertEqual(next_board, 'B[20];W[00]')
 
     def test_is_terminal_state(self):
-        sgf = ';'.join([ChessType.BLACK + self.env.hex_action(i) for i in range(self.args.rows * self.args.columns)])
-        self.assertEqual(self.env.is_terminal_state(sgf, 0, ChessType.BLACK), ChessType.BLACK)
+        sgf = ';'.join([ChessType.BLACK + self.game.hex_action(i) for i in range(self.args.rows * self.args.columns)])
+        self.assertEqual(self.game.is_terminal_state(sgf, 0, ChessType.BLACK), ChessType.BLACK)
 
-        sgf = ';'.join([ChessType.WHITE + self.env.hex_action(i) for i in range(self.args.rows * self.args.columns)])
-        self.assertEqual(self.env.is_terminal_state(sgf, 0, ChessType.BLACK), ChessType.EMPTY)
+        sgf = ';'.join([ChessType.WHITE + self.game.hex_action(i) for i in range(self.args.rows * self.args.columns)])
+        self.assertEqual(self.game.is_terminal_state(sgf, 0, ChessType.BLACK), ChessType.EMPTY)
 
         boards = ["B[11];B[12]", "B[11];B[21]", "B[11];B[22]", "B[11];B[00]"]
         for sgf in boards:
-            self.assertEqual(self.env.is_terminal_state(sgf, 1 * self.args.columns + 1, ChessType.BLACK),
+            self.assertEqual(self.game.is_terminal_state(sgf, 1 * self.args.columns + 1, ChessType.BLACK),
                              ChessType.BLACK)
 
         sgf = "B[03];B[10]"
-        self.assertEqual(self.env.is_terminal_state(sgf, 3, ChessType.BLACK), None)
+        self.assertEqual(self.game.is_terminal_state(sgf, 3, ChessType.BLACK), None)
 
     def test_available_actions(self):
-        sgf = ';'.join([ChessType.BLACK + self.env.hex_action(i) for i in range(self.args.rows * self.args.columns)])
-        self.assertEqual(self.env.available_actions(sgf), [])
+        sgf = ';'.join([ChessType.BLACK + self.game.hex_action(i) for i in range(self.args.rows * self.args.columns)])
+        self.assertEqual(self.game.available_actions(sgf), [])
 
         sgf = ';'.join(
-            [ChessType.BLACK + self.env.hex_action(i) for i in range(0, self.args.rows * self.args.columns, 2)])
-        self.assertEqual(self.env.available_actions(sgf), [i for i in range(1, self.args.rows * self.args.columns, 2)])
+            [ChessType.BLACK + self.game.hex_action(i) for i in range(0, self.args.rows * self.args.columns, 2)])
+        self.assertEqual(self.game.available_actions(sgf), [i for i in range(1, self.args.rows * self.args.columns, 2)])
 
     def test_player_insensitive_board(self):
         self.assertEqual(self.nnet.player_insensitive_board('B[20];W[00]', ChessType.BLACK), 'B[20];W[00]')

@@ -13,15 +13,15 @@ from keras.optimizers import Adam
 from keras.regularizers import l2
 
 from alphazero.nnet import NNet
-from gomoku.env import ChessType
+from gomoku.game import ChessType
 
 numpy.random.seed(1337)  # for reproducibility
 
 
 class GomokuNNet(NNet):
 
-    def __init__(self, env, args):
-        self.env = env
+    def __init__(self, game, args):
+        self.game = game
         self.args = args
         self.model = self.build()
 
@@ -99,7 +99,7 @@ class GomokuNNet(NNet):
     def fit_transform(self, board, player):
         def transform(board, player):
             f = numpy.zeros((self.args.history_num, self.args.rows, self.args.columns))
-            actions = [self.env.dec_action(stone) for stone in board.split(self.env.semicolon) if
+            actions = [self.game.dec_action(stone) for stone in board.split(self.game.semicolon) if
                        stone and stone[0] == player]
             for i in range(self.args.history_num):
                 for (x, y) in actions[:len(actions) - i]:
@@ -118,4 +118,4 @@ class GomokuNNet(NNet):
         assert player != ChessType.EMPTY
         if player == ChessType.BLACK:
             return board
-        return "".join([c if c != ChessType.BLACK and c != ChessType.WHITE else self.env.next_player(c) for c in board])
+        return "".join([c if c != ChessType.BLACK and c != ChessType.WHITE else self.game.next_player(c) for c in board])
