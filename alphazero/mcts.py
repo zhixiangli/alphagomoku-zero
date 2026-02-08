@@ -8,9 +8,9 @@ import numpy
 
 class MCTS:
 
-    def __init__(self, nnet, env, args):
+    def __init__(self, nnet, game, args):
         self.nnet = nnet
-        self.env = env
+        self.game = game
         self.args = args
 
         self.visit_count = {}  # N(s, a) is the visit count
@@ -24,7 +24,7 @@ class MCTS:
     def simulate(self, board, player):
         for _ in range(self.args.simulation_num):
             self.search(board, player)
-        self.env.log_status(board, numpy.copy(self.visit_count[board]), numpy.copy(self.available_actions[board]))
+        self.game.log_status(board, numpy.copy(self.visit_count[board]), numpy.copy(self.available_actions[board]))
         return numpy.copy(self.available_actions[board]), numpy.copy(self.visit_count[board])
 
     def search(self, board, player):
@@ -32,9 +32,9 @@ class MCTS:
             return -self.__expand(board, player)
         index = self.__select(board)
         action = self.available_actions[board][index]
-        next_board, next_player = self.env.next_state(board, action, player)
+        next_board, next_player = self.game.next_state(board, action, player)
         if next_board not in self.terminal_state:
-            self.terminal_state[next_board] = self.env.is_terminal_state(next_board, action, player)
+            self.terminal_state[next_board] = self.game.is_terminal_state(next_board, action, player)
         if self.terminal_state[next_board] is not None:
             value = 1 if player == self.terminal_state[next_board] else 0
         else:
@@ -61,7 +61,7 @@ class MCTS:
 
     def __expand(self, board, player):
         proba, value = self.nnet.predict([board, player])
-        actions = self.env.available_actions(board)
+        actions = self.game.available_actions(board)
         self.available_actions[board] = actions
         self.prior_probability[board] = proba[actions] / sum(proba[actions])
         self.total_visit_count[board] = 1

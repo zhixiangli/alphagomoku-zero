@@ -7,7 +7,7 @@ import unittest
 import numpy
 from dotdict import dotdict
 
-from alphazero.env import Env
+from alphazero.game import Game
 from alphazero.mcts import MCTS
 from alphazero.nnet import NNet
 from alphazero.rl import RL
@@ -19,7 +19,7 @@ class ChessType:
     EMPTY = '.'
 
 
-class MockEnv(Env):
+class MockGame(Game):
     """
     1 * 3 board, 2 continuous color will be win.
     """
@@ -48,7 +48,7 @@ class MockEnv(Env):
         return None
 
     def get_initial_state(self):
-        return ChessType.EMPTY * MockEnv.columns, ChessType.BLACK
+        return ChessType.EMPTY * MockGame.columns, ChessType.BLACK
 
     def available_actions(self, board):
         return [i for i in range(len(board)) if board[i] == ChessType.EMPTY]
@@ -56,10 +56,15 @@ class MockEnv(Env):
     def log_status(self, board, counts, actions):
         pass
 
+    def compute_reward(self, winner, player):
+        if winner == ChessType.EMPTY:
+            return 0
+        return 1 if player == winner else -1
+
 
 class MockNNet(NNet):
     def predict(self, data):
-        return numpy.array([1] * MockEnv.columns), 0
+        return numpy.array([1] * MockGame.columns), 0
 
     def load_weights(self, filename):
         pass
@@ -68,7 +73,7 @@ class MockNNet(NNet):
 class TestAlphaZero(unittest.TestCase):
 
     def setUp(self):
-        self.env = MockEnv()
+        self.game = MockGame()
         self.nnet = MockNNet()
         self.args = dotdict({
             'simulation_num': 100,
@@ -80,11 +85,11 @@ class TestAlphaZero(unittest.TestCase):
             'sample_pool_file': '',
             'temp_step': 5,
         })
-        self.mcts = MCTS(self.nnet, self.env, self.args)
-        self.rl = RL(self.nnet, self.env, self.args)
+        self.mcts = MCTS(self.nnet, self.game, self.args)
+        self.rl = RL(self.nnet, self.game, self.args)
 
     def test_mcts(self):
-        board, player = self.env.get_initial_state()
+        board, player = self.game.get_initial_state()
         self.mcts.simulate(board, player)
         print("visit_count", self.mcts.visit_count)
         print("mean_action_value", self.mcts.mean_action_value)

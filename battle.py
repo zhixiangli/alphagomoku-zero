@@ -11,9 +11,9 @@ from enum import Enum, unique
 import numpy
 
 from alphazero.mcts import MCTS
-from gomoku.env import GomokuEnv, ChessType
+from alphazero.rl import RL
+from gomoku.game import GomokuGame, ChessType
 from gomoku.nnet import GomokuNNet
-from gomoku.rl import GomokuRL
 
 
 @unique
@@ -40,11 +40,11 @@ class BattleAgent:
 
 class GomokuBattleAgent(BattleAgent):
 
-    def __init__(self, nnet, env, args):
+    def __init__(self, nnet, game, args):
         self.nnet = nnet
-        self.env = env
+        self.game = game
         self.args = args
-        self.mcts = MCTS(self.nnet, self.env, self.args)
+        self.mcts = MCTS(self.nnet, self.game, self.args)
 
     def next(self, sgf, player):
         actions, counts = self.mcts.simulate(sgf, player)
@@ -102,11 +102,11 @@ if __name__ == '__main__':
     init_logging(args)
     logging.info(args)
 
-    env = GomokuEnv(args)
-    nnet = GomokuNNet(env, args)
+    game = GomokuGame(args)
+    nnet = GomokuNNet(game, args)
     nnet.load_weights(args.save_weights_path)
 
     if args.is_battle:
-        GomokuBattleAgent(nnet, env, args).start()
+        GomokuBattleAgent(nnet, game, args).start()
     else:
-        GomokuRL(nnet, env, args).start()
+        RL(nnet, game, args).start()
