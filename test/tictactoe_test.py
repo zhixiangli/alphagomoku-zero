@@ -11,7 +11,7 @@ from dotdict import dotdict
 
 from alphazero.game import Game
 from tictactoe.game import TicTacToeGame
-from tictactoe.nnet import TicTacToeNNet
+from alphazero.nnet import AlphaZeroNNet
 from gomoku.game import ChessType
 
 
@@ -33,7 +33,7 @@ class TestTicTacToe(unittest.TestCase):
             'sample_pool_file': './tmp',
         })
         self.game = TicTacToeGame(self.args)
-        self.nnet = TicTacToeNNet(self.game, self.args)
+        self.nnet = AlphaZeroNNet(self.game, self.args)
 
     def test_next_player(self):
         self.assertEqual(self.game.next_player(ChessType.BLACK), ChessType.WHITE)
@@ -92,22 +92,6 @@ class TestTicTacToe(unittest.TestCase):
     def test_get_canonical_form(self):
         self.assertEqual(self.game.get_canonical_form('B[00];W[11]', ChessType.BLACK), 'B[00];W[11]')
         self.assertEqual(self.game.get_canonical_form('B[00];W[11]', ChessType.WHITE), 'W[00];B[11]')
-
-    def test_fit_transform(self):
-        canonical = self.game.get_canonical_form('B[00];W[11]', ChessType.BLACK)
-        feature = self.nnet.fit_transform(canonical)
-        expected = numpy.array([[[1, 0, 0],
-                                  [0, 0, 0],
-                                  [0, 0, 0]],
-
-                                 [[0, 0, 0],
-                                  [0, 1, 0],
-                                  [0, 0, 0]]])
-        self.assertTrue(numpy.array_equal(feature, expected))
-
-    def test_fit_transform_empty(self):
-        self.assertTrue(numpy.array_equal(self.nnet.fit_transform(''),
-                                          numpy.zeros((2, 3, 3))))
 
     def test_checkpoint_round_trip(self):
         tmpdir = tempfile.mkdtemp()
