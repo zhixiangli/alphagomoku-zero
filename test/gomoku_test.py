@@ -9,6 +9,7 @@ import unittest
 import numpy
 from dotdict import dotdict
 
+from alphazero.game import Game
 from gomoku.game import GomokuGame, ChessType
 from gomoku.nnet import GomokuNNet
 
@@ -53,7 +54,7 @@ class TestGomoku(unittest.TestCase):
         self.assertEqual(self.game.is_terminal_state(sgf, 0, ChessType.BLACK), ChessType.BLACK)
 
         sgf = ';'.join([ChessType.WHITE + self.game.hex_action(i) for i in range(self.args.rows * self.args.columns)])
-        self.assertEqual(self.game.is_terminal_state(sgf, 0, ChessType.BLACK), ChessType.EMPTY)
+        self.assertEqual(self.game.is_terminal_state(sgf, 0, ChessType.BLACK), Game.DRAW)
 
         boards = ["B[11];B[12]", "B[11];B[21]", "B[11];B[22]", "B[11];B[00]"]
         for sgf in boards:

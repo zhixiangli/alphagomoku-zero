@@ -26,10 +26,6 @@ class MockGame(Game):
     rows = 1
     columns = 3
 
-    @property
-    def action_space_size(self):
-        return MockGame.rows * MockGame.columns
-
     def next_player(self, player):
         assert player != ChessType.EMPTY
         return ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
@@ -48,7 +44,7 @@ class MockGame(Game):
         if (action > 0 and board[action - 1] == board[action]) or (action == 0 and board[action + 1] == board[action]):
             return player
         if all(ch != ChessType.EMPTY for ch in board):
-            return ChessType.EMPTY
+            return Game.DRAW
         return None
 
     def get_initial_state(self):
@@ -59,11 +55,6 @@ class MockGame(Game):
 
     def log_status(self, board, counts, actions):
         pass
-
-    def compute_reward(self, winner, player):
-        if winner == ChessType.EMPTY:
-            return 0
-        return 1 if player == winner else -1
 
     def get_canonical_form(self, board, player):
         if player == ChessType.BLACK:
