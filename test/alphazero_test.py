@@ -122,13 +122,9 @@ class TestAlphaZero(unittest.TestCase):
 
     def test_play_against_itself_draw_values_are_zero(self):
         samples = self.rl.play_against_itself()
-        for board, player, policy, value in samples:
-            if value == 0:
-                # Draw means all values should be 0
-                all_values = [v for _, _, _, v in samples]
-                if 0 in all_values:
-                    self.assertTrue(all(v == 0 for v in all_values))
-                break
+        all_values = [v for _, _, _, v in samples]
+        if 0 in all_values:
+            self.assertTrue(all(v == 0 for v in all_values))
 
     def test_create_mcts_returns_mcts_instance(self):
         mcts = self.rl.create_mcts()
@@ -189,7 +185,7 @@ class TestAlphaZero(unittest.TestCase):
             os.unlink(self.args.sample_pool_file)
 
     def test_read_sample_pool_returns_none_for_missing_file(self):
-        self.args.sample_pool_file = '/tmp/nonexistent_test_file.pkl'
+        self.args.sample_pool_file = os.path.join(tempfile.gettempdir(), 'nonexistent_test_file.pkl')
         rl = RL(self.nnet, self.env, self.args)
         self.assertEqual(len(rl.sample_pool), 0)
 
