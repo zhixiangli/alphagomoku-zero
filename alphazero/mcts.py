@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
-import math
-
 import numpy
 
 
@@ -29,8 +27,8 @@ class MCTS:
 
     def search(self, board, player):
         if board not in self.prior_probability:  # leaf
-            return -self.__expand(board, player)
-        index = self.__select(board)
+            return -self._expand(board, player)
+        index = self._select(board)
         action = self.available_actions[board][index]
         next_board, next_player = self.env.next_state(board, action, player)
         if next_board not in self.terminal_state:
@@ -39,32 +37,32 @@ class MCTS:
             value = 1 if player == self.terminal_state[next_board] else 0
         else:
             value = self.search(next_board, next_player)
-        self.__backup(board, index, value)
+        self._backup(board, index, value)
         return -value
 
-    def __select(self, board):
-        best_value = -math.inf
-        best_index = None
-        for i in range(len(self.available_actions[board])):
-            curr_value = self.args.c_puct * self.prior_probability[board][i] * math.sqrt(
-                self.total_visit_count[board]) / (1.0 + self.visit_count[board][i])
-            curr_value += self.mean_action_value[board][i]
-            if curr_value > best_value:
-                best_value, best_index = curr_value, i
-        return best_index
+    def _select(self, board):
+        ucb = self.args.c_puct * self.prior_probability[board] * numpy.sqrt(
+            self.total_visit_count[board]) / (1.0 + self.visit_count[board])
+        ucb += self.mean_action_value[board]
+        return numpy.argmax(ucb)
 
-    def __backup(self, board, index, value):
+    def _backup(self, board, index, value):
         self.mean_action_value[board][index] = (self.mean_action_value[board][index] * self.visit_count[board][
             index] + value) / (self.visit_count[board][index] + 1.0)
         self.visit_count[board][index] += 1
         self.total_visit_count[board] += 1
 
-    def __expand(self, board, player):
+    def _expand(self, board, player):
         proba, value = self.nnet.predict([board, player])
         actions = self.env.available_actions(board)
         self.available_actions[board] = actions
-        self.prior_probability[board] = proba[actions] / sum(proba[actions])
-        self.total_visit_count[board] = 1
+        action_proba = proba[actions]
+        prob_sum = numpy.sum(action_proba)
+        if prob_sum > 0:
+            self.prior_probability[board] = action_proba / prob_sum
+        else:
+            self.prior_probability[board] = numpy.ones(len(actions)) / len(actions)
+        self.total_visit_count[board] = 0
         self.mean_action_value[board] = numpy.zeros(len(actions))
         self.visit_count[board] = numpy.zeros(len(actions))
         return value

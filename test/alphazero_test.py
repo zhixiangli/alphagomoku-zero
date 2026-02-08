@@ -97,6 +97,67 @@ class TestAlphaZero(unittest.TestCase):
         self.assertTrue(counts[0] < counts[1])
         self.assertTrue(counts[-1] < counts[-2])
 
+    def test_select_chooses_best_ucb(self):
+        board = '...'
+        self.mcts.prior_probability[board] = numpy.array([0.2, 0.5, 0.3])
+        self.mcts.visit_count[board] = numpy.array([5.0, 3.0, 2.0])
+        self.mcts.mean_action_value[board] = numpy.array([0.1, 0.8, 0.3])
+        self.mcts.total_visit_count[board] = 10
+        self.mcts.available_actions[board] = [0, 1, 2]
+
+        index = self.mcts._select(board)
+        # Verify the selected index has the highest UCB value
+        ucb = self.args.c_puct * self.mcts.prior_probability[board] * numpy.sqrt(
+            self.mcts.total_visit_count[board]) / (
+                    1.0 + self.mcts.visit_count[board]) + self.mcts.mean_action_value[board]
+        self.assertEqual(index, numpy.argmax(ucb))
+
+    def test_backup_updates_stats(self):
+        board = '...'
+        self.mcts.visit_count[board] = numpy.array([2.0, 0.0])
+        self.mcts.mean_action_value[board] = numpy.array([0.5, 0.0])
+        self.mcts.total_visit_count[board] = 2
+
+        self.mcts._backup(board, 0, 1.0)
+        self.assertAlmostEqual(self.mcts.mean_action_value[board][0], (0.5 * 2 + 1.0) / 3.0)
+        self.assertEqual(self.mcts.visit_count[board][0], 3.0)
+        self.assertEqual(self.mcts.total_visit_count[board], 3)
+
+        self.mcts._backup(board, 1, -0.5)
+        self.assertAlmostEqual(self.mcts.mean_action_value[board][1], -0.5)
+        self.assertEqual(self.mcts.visit_count[board][1], 1.0)
+        self.assertEqual(self.mcts.total_visit_count[board], 4)
+
+    def test_expand_initializes_node(self):
+        board, player = self.env.get_initial_state()
+        value = self.mcts._expand(board, player)
+        self.assertEqual(value, 0)
+        self.assertEqual(len(self.mcts.available_actions[board]), 3)
+        self.assertAlmostEqual(numpy.sum(self.mcts.prior_probability[board]), 1.0)
+        self.assertEqual(self.mcts.total_visit_count[board], 0)
+        numpy.testing.assert_array_equal(self.mcts.visit_count[board], numpy.zeros(3))
+        numpy.testing.assert_array_equal(self.mcts.mean_action_value[board], numpy.zeros(3))
+
+    def test_expand_handles_zero_proba(self):
+        """Test that _expand handles neural network outputting all zeros."""
+        class ZeroNNet(NNet):
+            def predict(self, data):
+                return numpy.array([0, 0, 0]), 0.5
+        mcts = MCTS(ZeroNNet(), self.env, self.args)
+        board, player = self.env.get_initial_state()
+        value = mcts._expand(board, player)
+        self.assertEqual(value, 0.5)
+        # Should fall back to uniform distribution
+        numpy.testing.assert_array_almost_equal(
+            mcts.prior_probability[board], numpy.array([1.0 / 3, 1.0 / 3, 1.0 / 3]))
+
+    def test_total_visit_count_consistent(self):
+        """Verify total_visit_count equals sum of visit_count after simulation."""
+        board, player = self.env.get_initial_state()
+        self.mcts.simulate(board, player)
+        for b in self.mcts.total_visit_count:
+            self.assertEqual(self.mcts.total_visit_count[b], numpy.sum(self.mcts.visit_count[b]))
+
     def test_play_against_itself(self):
         samples = self.rl.play_against_itself()
         print("play_against_itself", samples)
