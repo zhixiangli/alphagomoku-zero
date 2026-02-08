@@ -4,7 +4,7 @@ An AlphaZero implementation for Gomoku (Five in a Row) using Monte Carlo Tree Se
 
 ## Prerequisites
 
-- Python 3.11+
+- Python 3.12+
 - [uv](https://docs.astral.sh/uv/) package manager
 
 ## Setup
