@@ -62,7 +62,7 @@ class TestRL(unittest.TestCase):
             for loc in expected[i]:
                 self.assertEqual(x[loc[0]][loc[1]], 0)
 
-    def test_reverse_color_removed(self):
+    def test_no_reverse_color_method(self):
         """reverse_color is no longer needed with canonical form."""
         self.assertFalse(hasattr(self.game, 'reverse_color'))
 
