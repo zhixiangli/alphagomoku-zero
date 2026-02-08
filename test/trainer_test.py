@@ -69,7 +69,7 @@ class TestRunTraining(unittest.TestCase):
         config = MagicMock()
         config.save_checkpoint_path = '/tmp/model'
 
-        game_class = MagicMock
+        game_class = type('FakeGame', (), {})
 
         run_training(mock_module, game_class, config)
 
