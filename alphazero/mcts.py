@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
-import math
-
 import numpy
 
 
@@ -43,15 +41,10 @@ class MCTS:
         return -value
 
     def __select(self, board):
-        best_value = -math.inf
-        best_index = None
-        for i in range(len(self.available_actions[board])):
-            curr_value = self.args.c_puct * self.prior_probability[board][i] * math.sqrt(
-                self.total_visit_count[board]) / (1.0 + self.visit_count[board][i])
-            curr_value += self.mean_action_value[board][i]
-            if curr_value > best_value:
-                best_value, best_index = curr_value, i
-        return best_index
+        u = self.args.c_puct * self.prior_probability[board] * numpy.sqrt(
+            self.total_visit_count[board]) / (1.0 + self.visit_count[board])
+        values = self.mean_action_value[board] + u
+        return int(numpy.argmax(values))
 
     def __backup(self, board, index, value):
         self.mean_action_value[board][index] = (self.mean_action_value[board][index] * self.visit_count[board][
@@ -63,7 +56,7 @@ class MCTS:
         proba, value = self.nnet.predict([board, player])
         actions = self.game.available_actions(board)
         self.available_actions[board] = actions
-        self.prior_probability[board] = proba[actions] / sum(proba[actions])
+        self.prior_probability[board] = proba[actions] / numpy.sum(proba[actions])
         self.total_visit_count[board] = 1
         self.mean_action_value[board] = numpy.zeros(len(actions))
         self.visit_count[board] = numpy.zeros(len(actions))
