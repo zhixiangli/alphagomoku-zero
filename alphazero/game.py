@@ -95,7 +95,7 @@ class Game:
         ``Game.DRAW`` for draws.  Override only if your game uses a
         non-standard outcome representation.
         """
-        if winner is self.DRAW or winner == self.DRAW:
+        if winner == self.DRAW:
             return 0
         return 1 if winner == player else -1
 
