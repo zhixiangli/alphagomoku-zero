@@ -2,6 +2,7 @@
 #  -*- coding: utf-8 -*-
 
 import argparse
+import copy
 import json
 import logging
 import logging.handlers
@@ -77,6 +78,11 @@ if __name__ == '__main__':
 
     # Application flags (not part of game/algorithm config)
     parser.add_argument('-is_battle', type=int, default=0)
+    parser.add_argument('-eval', type=int, default=0)
+    parser.add_argument('-num_eval_games', type=int, default=50)
+    parser.add_argument('-eval_checkpoint_path', default='./data/model2')
+    parser.add_argument('-eval_simulation_num', type=int, default=None)
+    parser.add_argument('-eval_c_puct', type=float, default=None)
     parser.add_argument('-logpath', default='./data/gomoku.log')
 
     # Game-specific config (Gomoku)
@@ -141,6 +147,18 @@ if __name__ == '__main__':
         nnet = nnet_class(game, config)
         nnet.load_checkpoint(config.save_checkpoint_path)
         GomokuBattleAgent(nnet, game, config).start()
+    elif cli_args.eval:
+        config2 = copy.replace(
+            config,
+            save_checkpoint_path=cli_args.eval_checkpoint_path,
+            simulation_num=cli_args.eval_simulation_num if cli_args.eval_simulation_num is not None else config.simulation_num,
+            c_puct=cli_args.eval_c_puct if cli_args.eval_c_puct is not None else config.c_puct,
+        )
+        evaluator = module.create_evaluator(GomokuGame, config, config2)
+        evaluator.nnet1.load_checkpoint(config.save_checkpoint_path)
+        evaluator.nnet2.load_checkpoint(config2.save_checkpoint_path)
+        results = evaluator.evaluate(num_games=cli_args.num_eval_games)
+        logging.info("Final results: %s", results)
     else:
         trainer = module.create_trainer(GomokuGame, config)
         trainer.nnet.load_checkpoint(config.save_checkpoint_path)
