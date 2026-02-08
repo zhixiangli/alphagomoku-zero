@@ -32,14 +32,14 @@ class RL:
 
     def play_against_itself(self):
         board, player = self.game.get_initial_state()
-        boards, players, policies = [], [], []
+        canonical_boards, players, policies = [], [], []
         mcts = MCTS(self.nnet, self.game, self.args)
         for i in itertools.count():
             actions, counts = mcts.simulate(board, player)
             pi = counts / numpy.sum(counts)
             policy = numpy.zeros(self.game.action_space_size)
             policy[actions] = pi
-            boards.append(board)
+            canonical_boards.append(self.game.get_canonical_form(board, player))
             players.append(player)
             policies.append(policy)
 
@@ -51,7 +51,7 @@ class RL:
             if winner is not None:
                 logging.info("winner: %c", winner)
                 values = numpy.array([self.game.compute_reward(winner, p) for p in players])
-                return [i for i in zip(boards, players, policies, values)]
+                return [i for i in zip(canonical_boards, policies, values)]
             board, player = next_board, next_player
 
     def start(self):

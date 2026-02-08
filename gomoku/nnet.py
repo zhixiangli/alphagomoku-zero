@@ -10,46 +10,38 @@ from gomoku.game import ChessType
 class GomokuNNet(AlphaZeroNNet):
     """Gomoku-specific neural network adapter.
 
-    Extends AlphaZeroNNet with Gomoku-specific feature extraction
-    (board encoding and player-insensitive transforms).
+    Extends AlphaZeroNNet with Gomoku-specific feature extraction.
+    Expects canonical board input (current player always represented as BLACK).
     """
 
     def train(self, data):
-        boards, players, policies, values = zip(*data)
-        states = numpy.zeros((len(players), self.args.history_num * 2 + 1, self.args.rows, self.args.columns))
-        for i in range(len(players)):
-            states[i] = self.fit_transform(boards[i], players[i])
+        boards, policies, values = zip(*data)
+        states = numpy.zeros((len(boards), 2, self.args.rows, self.args.columns))
+        for i in range(len(boards)):
+            states[i] = self.fit_transform(boards[i])
         policies = numpy.array(policies)
         values = numpy.array(values)
         self.model.fit(x=states, y=[policies, values], batch_size=self.args.batch_size, epochs=self.args.epochs)
 
-    def predict(self, data):
-        board, player = data
-        states = numpy.zeros((1, self.args.history_num * 2 + 1, self.args.rows, self.args.columns))
-        states[0] = self.fit_transform(board, player)
+    def predict(self, board):
+        states = numpy.zeros((1, 2, self.args.rows, self.args.columns))
+        states[0] = self.fit_transform(board)
         policy, value = self.model.predict(states)
         return policy[0], value[0]
 
-    def fit_transform(self, board, player):
-        def transform(board, player):
-            f = numpy.zeros((self.args.history_num, self.args.rows, self.args.columns))
-            actions = [self.game.dec_action(stone) for stone in board.split(self.game.semicolon) if
-                       stone and stone[0] == player]
-            for i in range(self.args.history_num):
-                for (x, y) in actions[:len(actions) - i]:
-                    f[self.args.history_num - i - 1][x][y] = 1
-            return f
+    def fit_transform(self, board):
+        """Extract features from a canonical board.
 
-        feature = numpy.zeros((self.args.history_num * 2 + 1, self.args.rows, self.args.columns))
-        if player == ChessType.BLACK:
-            feature[-1] = numpy.ones((self.args.rows, self.args.columns))
-        new_board = self.player_insensitive_board(board, player)
-        feature[:self.args.history_num] = transform(new_board, ChessType.BLACK)
-        feature[self.args.history_num:self.args.history_num * 2] = transform(new_board, ChessType.WHITE)
+        Channel 0: current player's stones (BLACK in canonical form)
+        Channel 1: opponent's stones (WHITE in canonical form)
+        """
+        feature = numpy.zeros((2, self.args.rows, self.args.columns))
+        if board:
+            for stone in board.split(self.game.semicolon):
+                if stone:
+                    (x, y) = self.game.dec_action(stone)
+                    if stone[0] == ChessType.BLACK:
+                        feature[0][x][y] = 1
+                    elif stone[0] == ChessType.WHITE:
+                        feature[1][x][y] = 1
         return feature
-
-    def player_insensitive_board(self, board, player):
-        assert player != ChessType.EMPTY
-        if player == ChessType.BLACK:
-            return board
-        return "".join([c if c != ChessType.BLACK and c != ChessType.WHITE else self.game.next_player(c) for c in board])

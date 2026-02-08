@@ -78,6 +78,16 @@ class GomokuGame(Game):
             return 0
         return 1 if player == winner else -1
 
+    def get_canonical_form(self, board, player):
+        """Returns board from the perspective of the current player.
+
+        If the current player is BLACK, returns board as-is.
+        If the current player is WHITE, swaps BLACK and WHITE stones.
+        """
+        if player == ChessType.BLACK:
+            return board
+        return "".join([self.next_player(c) if c in (ChessType.BLACK, ChessType.WHITE) else c for c in board])
+
     def to_board(self, sgf):
         board = numpy.full((self.args.rows, self.args.columns), ChessType.EMPTY, dtype='U1')
         for stone in self.structure_sgf(sgf):
@@ -126,12 +136,11 @@ class GomokuGame(Game):
 
     def augment_samples(self, samples):
         augmented = []
-        samples += self.reverse_color(samples)
         for sample in samples:
-            board, player, policy, value = sample
+            board, policy, value = sample
             boards = self.augment_board(board)
             policies = self.augment_policy(policy)
-            augmented.extend([(b, player, p, value) for b, p in zip(boards, policies)])
+            augmented.extend([(b, p, value) for b, p in zip(boards, policies)])
         return augmented
 
     def augment_board(self, board):
@@ -176,12 +185,3 @@ class GomokuGame(Game):
         result[1::2] = flipped.reshape(4, -1)
         return list(result)
 
-    def reverse_color(self, samples):
-        reversed_samples = []
-        for sample in samples:
-            board, player, policy, value = sample
-            reversed_board = ''.join(list(
-                (map(lambda c: self.next_player(c) if c == ChessType.WHITE or c == ChessType.BLACK else c, board))))
-            reversed_player = self.next_player(player)
-            reversed_samples.append((reversed_board, reversed_player, policy, value))
-        return reversed_samples

@@ -65,9 +65,14 @@ class MockGame(Game):
             return 0
         return 1 if player == winner else -1
 
+    def get_canonical_form(self, board, player):
+        if player == ChessType.BLACK:
+            return board
+        return "".join([self.next_player(c) if c in (ChessType.BLACK, ChessType.WHITE) else c for c in board])
+
 
 class MockNNet(NNet):
-    def predict(self, data):
+    def predict(self, board):
         return numpy.array([1] * MockGame.columns), 0
 
     def load_checkpoint(self, filename):
