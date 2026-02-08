@@ -44,7 +44,7 @@ class GomokuGame(Game):
                 board_array[x, y] = stone[0]
         if any(self.is_win(action, player, direction, board_array) for direction in self.directions):
             return player
-        if int(numpy.sum(board_array != ChessType.EMPTY)) == self.args.rows * self.args.columns:
+        if numpy.sum(board_array != ChessType.EMPTY) == self.args.rows * self.args.columns:
             return ChessType.EMPTY
         return None
 
@@ -169,7 +169,7 @@ class GomokuGame(Game):
 
     def augment_policy(self, policy):
         original = policy.reshape(self.args.rows, self.args.columns)
-        rotations = numpy.array([numpy.rot90(original, -i) for i in range(1, 5)])
+        rotations = numpy.stack([numpy.rot90(original, -i) for i in range(1, 5)])
         flipped = numpy.flip(rotations, axis=2)
         result = numpy.empty((8, self.args.rows * self.args.columns))
         result[0::2] = rotations.reshape(4, -1)
