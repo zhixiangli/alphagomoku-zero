@@ -38,7 +38,7 @@ class AlphaZeroConfig:
     residual_block_num: int = 2
 
     # Persistence paths
-    save_weights_path: str = './data/model'
+    save_checkpoint_path: str = './data/model'
     sample_pool_file: str = './data/samples.pkl'
 
     @property
