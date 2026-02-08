@@ -21,7 +21,7 @@ class TestRL(unittest.TestCase):
             'conv_filters': 16,
             'conv_kernel': (3, 3),
             'residual_block_num': 2,
-            'save_weights_path': './tmp',
+            'save_checkpoint_path': './tmp',
             'max_sample_pool_size': 10000,
             'l2': 1e-4,
             'lr': 1e-3,

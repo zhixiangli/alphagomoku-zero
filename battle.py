@@ -84,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('-n_in_row', type=int, default=5)
 
     # AlphaZero common config
-    parser.add_argument('-save_weights_path', default='./data/model')
+    parser.add_argument('-save_checkpoint_path', default='./data/model')
     parser.add_argument('-sample_pool_file', default='./data/samples.pkl')
     parser.add_argument('-persist_interval', type=int, default=50)
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         conv_filters=cli_args.conv_filters,
         conv_kernel=cli_args.conv_kernel,
         residual_block_num=cli_args.residual_block_num,
-        save_weights_path=cli_args.save_weights_path,
+        save_checkpoint_path=cli_args.save_checkpoint_path,
         sample_pool_file=cli_args.sample_pool_file,
     )
 
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     game = GomokuGame(config)
     nnet = GomokuNNet(game, config)
-    nnet.load_weights(config.save_weights_path)
+    nnet.load_checkpoint(config.save_checkpoint_path)
 
     if cli_args.is_battle:
         GomokuBattleAgent(nnet, game, config).start()

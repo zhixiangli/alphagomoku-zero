@@ -68,7 +68,7 @@ class RL:
                 persist_sample_pool_thread = threading.Thread(target=self.persist_sample_pool,
                                                               args=[copy.deepcopy(self.sample_pool)])
                 persist_sample_pool_thread.start()
-                self.nnet.save_weights(self.args.save_weights_path)
+                self.nnet.save_checkpoint(self.args.save_checkpoint_path)
 
     def persist_sample_pool(self, samples):
         with self.sample_pool_persistence_lock:

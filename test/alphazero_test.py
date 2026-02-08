@@ -70,7 +70,7 @@ class MockNNet(NNet):
     def predict(self, data):
         return numpy.array([1] * MockGame.columns), 0
 
-    def load_weights(self, filename):
+    def load_checkpoint(self, filename):
         pass
 
 
@@ -82,7 +82,7 @@ class TestAlphaZero(unittest.TestCase):
         self.args = dotdict({
             'simulation_num': 100,
             'c_puct': 5,
-            'save_weights_path': '',
+            'save_checkpoint_path': '',
             'rows': 1,
             'columns': 3,
             'max_sample_pool_size': 100000,
