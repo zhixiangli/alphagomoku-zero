@@ -100,7 +100,7 @@ class GomokuGame(Game):
         x, y = action // self.args.columns, action % self.args.columns
         cnt = 0
         i, j = x, y
-        while 0 <= i < self.args.rows and 0 <= j <= self.args.columns and board_map.get((i, j)) == player:
+        while 0 <= i < self.args.rows and 0 <= j < self.args.columns and board_map.get((i, j)) == player:
             cnt += 1
             i += dx
             j += dy
