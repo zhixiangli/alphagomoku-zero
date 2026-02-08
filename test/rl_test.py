@@ -6,8 +6,8 @@ import unittest
 import numpy
 from dotdict import dotdict
 
-from gomoku.game import GomokuGame
-from gomoku.nnet import GomokuNNet
+from gomoku.game import GomokuGame, ChessType
+from alphazero.nnet import AlphaZeroNNet
 
 
 class TestRL(unittest.TestCase):
@@ -28,7 +28,7 @@ class TestRL(unittest.TestCase):
             'sample_pool_file': './tmp',
         })
         self.game = GomokuGame(self.args)
-        self.nnet = GomokuNNet(self.game, self.args)
+        self.nnet = AlphaZeroNNet(self.game, self.args)
 
     def test_coordinate_transform(self):
         """
@@ -44,11 +44,20 @@ class TestRL(unittest.TestCase):
         self.assertEqual(expected, set(self.game.augment_coordinate(1, 2)))
 
     def test_augment_board(self):
-        sgf = "B[12];W[02]"
-        expected = ['B[25];W[26]', 'B[21];W[20]', 'B[54];W[64]', 'B[52];W[62]', 'B[41];W[40]', 'B[45];W[46]',
-                    'B[12];W[02]', 'B[14];W[04]']
-
-        self.assertEqual(expected, self.game.augment_board(sgf))
+        board = self.game.get_canonical_form("B[12];W[02]", ChessType.BLACK)
+        augmented = self.game.augment_board(board)
+        self.assertEqual(len(augmented), 8)
+        # Each augmented board should have the same number of non-zero entries
+        orig_nonzero = numpy.count_nonzero(board)
+        for aug in augmented:
+            self.assertEqual(aug.shape, board.shape)
+            self.assertEqual(numpy.count_nonzero(aug), orig_nonzero)
+        # Verify the identity transform is included (index 6)
+        self.assertTrue(numpy.array_equal(augmented[6], board))
+        # Verify all 8 are distinct transformations
+        for i in range(8):
+            for j in range(i + 1, 8):
+                self.assertFalse(numpy.array_equal(augmented[i], augmented[j]))
 
     def test_augment_policy(self):
         pi = numpy.ones((self.args.rows, self.args.columns))

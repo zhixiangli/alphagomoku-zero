@@ -70,14 +70,22 @@ class GomokuGame(Game):
             logging.info(','.join(["%3d" % r for r in row]))
 
     def get_canonical_form(self, board, player):
-        """Returns board from the perspective of the current player.
+        """Returns board tensor from the perspective of the current player.
 
-        If the current player is BLACK, returns board as-is.
-        If the current player is WHITE, swaps BLACK and WHITE stones.
+        Channel 0: current player's stones
+        Channel 1: opponent's stones
         """
-        if player == ChessType.BLACK:
-            return board
-        return "".join([self.next_player(c) if c in (ChessType.BLACK, ChessType.WHITE) else c for c in board])
+        feature = numpy.zeros((2, self.args.rows, self.args.columns))
+        opponent = self.next_player(player)
+        if board:
+            for stone in board.split(self.semicolon):
+                if stone:
+                    (x, y) = self.dec_action(stone)
+                    if stone[0] == player:
+                        feature[0][x][y] = 1
+                    elif stone[0] == opponent:
+                        feature[1][x][y] = 1
+        return feature
 
     def to_board(self, sgf):
         board = numpy.full((self.args.rows, self.args.columns), ChessType.EMPTY, dtype='U1')
@@ -135,21 +143,13 @@ class GomokuGame(Game):
         return augmented
 
     def augment_board(self, board):
-        structured = self.structure_sgf(board)
-        if not structured:
-            return []
-        colors = [s[0] for s in structured]
-        coords = numpy.array([(s[1][0], s[1][1]) for s in structured])
-        x, y = coords[:, 0], coords[:, 1]
-        c = self.args.columns - 1
-        aug_x = numpy.stack([y, y, c - x, c - x, c - y, c - y, x, x])
-        aug_y = numpy.stack([c - x, x, c - y, y, x, c - x, y, c - y])
-        aug_actions = aug_x * self.args.columns + aug_y
-        boards = []
-        for i in range(aug_actions.shape[0]):
-            boards.append(
-                self.semicolon.join([colors[j] + self.hex_action(int(aug_actions[i, j])) for j in range(len(colors))]))
-        return boards
+        """Apply D4 symmetry group transformations to a board tensor."""
+        results = []
+        for k in range(1, 5):
+            rotated = numpy.rot90(board, -k, axes=(1, 2))
+            results.append(rotated)
+            results.append(numpy.flip(rotated, axis=2))
+        return results
 
     def rot90(self, x, y):
         return y, self.args.columns - x - 1

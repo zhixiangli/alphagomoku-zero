@@ -17,7 +17,7 @@ class AlphaZeroModule:
     Usage::
 
         module = AlphaZeroModule()
-        module.register(GomokuGame, GomokuNNet)
+        module.register(GomokuGame, AlphaZeroNNet)
         trainer = module.create_trainer(GomokuGame, GomokuConfig())
         trainer.start()
     """
