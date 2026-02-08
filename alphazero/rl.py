@@ -36,7 +36,7 @@ class RL:
         mcts = MCTS(self.nnet, self.game, self.args)
         for i in itertools.count():
             actions, counts = mcts.simulate(board, player)
-            pi = counts / sum(counts)
+            pi = counts / numpy.sum(counts)
             policy = numpy.zeros(self.game.action_space_size)
             policy[actions] = pi
             boards.append(board)
@@ -50,7 +50,7 @@ class RL:
             winner = self.game.is_terminal_state(next_board, action, player)
             if winner is not None:
                 logging.info("winner: %c", winner)
-                values = [self.game.compute_reward(winner, player) for player in players]
+                values = numpy.array([self.game.compute_reward(winner, p) for p in players])
                 return [i for i in zip(boards, players, policies, values)]
             board, player = next_board, next_player
 
