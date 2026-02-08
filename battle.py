@@ -11,7 +11,8 @@ from enum import Enum, unique
 import numpy
 
 from alphazero.mcts import MCTS
-from alphazero.rl import RL
+from alphazero.module import AlphaZeroModule
+from gomoku import configure_module
 from gomoku.config import GomokuConfig
 from gomoku.game import GomokuGame, ChessType
 from gomoku.nnet import GomokuNNet
@@ -130,11 +131,17 @@ if __name__ == '__main__':
 
     logging.info(config)
 
-    game = GomokuGame(config)
-    nnet = GomokuNNet(game, config)
-    nnet.load_checkpoint(config.save_checkpoint_path)
+    # Wire dependencies through the DI module
+    module = AlphaZeroModule()
+    configure_module(module)
 
     if cli_args.is_battle:
+        game = GomokuGame(config)
+        nnet_class = module.resolve_nnet_class(GomokuGame)
+        nnet = nnet_class(game, config)
+        nnet.load_checkpoint(config.save_checkpoint_path)
         GomokuBattleAgent(nnet, game, config).start()
     else:
-        RL(nnet, game, config).start()
+        trainer = module.create_trainer(GomokuGame, config)
+        trainer.nnet.load_checkpoint(config.save_checkpoint_path)
+        trainer.start()
