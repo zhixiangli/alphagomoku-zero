@@ -71,13 +71,12 @@ class TestGomoku(unittest.TestCase):
             [ChessType.BLACK + self.game.hex_action(i) for i in range(0, self.args.rows * self.args.columns, 2)])
         self.assertEqual(self.game.available_actions(sgf), [i for i in range(1, self.args.rows * self.args.columns, 2)])
 
-    def test_fit_transform0(self):
+    def test_get_canonical_form(self):
         # Board 'B[20];W[21];B[11]' with canonical form for WHITE player
-        # Canonical form swaps colors: 'W[20];B[21];W[11]'
-        # Channel 0 (BLACK/current player): B[21] -> (2,1)
-        # Channel 1 (WHITE/opponent): W[20] -> (2,0), W[11] -> (1,1)
+        # Channel 0 (current/WHITE player): W[21] -> (2,1)
+        # Channel 1 (opponent/BLACK): B[20] -> (2,0), B[11] -> (1,1)
         canonical = self.game.get_canonical_form('B[20];W[21];B[11]', ChessType.WHITE)
-        self.assertTrue(numpy.array_equal(self.game.fit_transform(canonical),
+        self.assertTrue(numpy.array_equal(canonical,
                                           numpy.array([[[0, 0, 0, ],
                                                         [0, 0, 0, ],
                                                         [0, 1, 0, ]],
@@ -86,11 +85,10 @@ class TestGomoku(unittest.TestCase):
                                                         [0, 1, 0, ],
                                                         [1, 0, 0, ]]])))
         # Board 'B[20];W[21];B[11]' with canonical form for BLACK player
-        # Canonical form is unchanged: 'B[20];W[21];B[11]'
-        # Channel 0 (BLACK/current player): B[20] -> (2,0), B[11] -> (1,1)
-        # Channel 1 (WHITE/opponent): W[21] -> (2,1)
+        # Channel 0 (current/BLACK player): B[20] -> (2,0), B[11] -> (1,1)
+        # Channel 1 (opponent/WHITE): W[21] -> (2,1)
         canonical = self.game.get_canonical_form('B[20];W[21];B[11]', ChessType.BLACK)
-        self.assertTrue(numpy.array_equal(self.game.fit_transform(canonical),
+        self.assertTrue(numpy.array_equal(canonical,
                                           numpy.array([[[0, 0, 0, ],
                                                         [0, 1, 0, ],
                                                         [1, 0, 0, ]],
@@ -99,13 +97,9 @@ class TestGomoku(unittest.TestCase):
                                                         [0, 0, 0, ],
                                                         [0, 1, 0, ]]])))
 
-    def test_fit_transform_empty(self):
-        self.assertTrue(numpy.array_equal(self.game.fit_transform(''),
+    def test_get_canonical_form_empty(self):
+        self.assertTrue(numpy.array_equal(self.game.get_canonical_form('', ChessType.BLACK),
                                           numpy.zeros((2, 3, 3))))
-
-    def test_get_canonical_form(self):
-        self.assertEqual(self.game.get_canonical_form('B[20];W[00]', ChessType.BLACK), 'B[20];W[00]')
-        self.assertEqual(self.game.get_canonical_form('B[20];W[00]', ChessType.WHITE), 'W[20];B[00]')
 
     def test_value_head_shape(self):
         """Value head must Flatten before Dense(256) per AlphaZero paper."""

@@ -36,7 +36,7 @@ class AlphaZeroNNet(NNet):
     - Policy head (softmax over action space)
     - Value head (scalar tanh)
 
-    Delegates game-specific feature extraction to game.fit_transform().
+    Uses game.get_canonical_form() directly for board representation.
     """
 
     def __init__(self, game, args):
@@ -90,16 +90,13 @@ class AlphaZeroNNet(NNet):
 
     def train(self, data):
         boards, policies, values = zip(*data)
-        states = numpy.zeros((len(boards), 2, self.args.rows, self.args.columns))
-        for i in range(len(boards)):
-            states[i] = self.game.fit_transform(boards[i])
+        states = numpy.array(boards)
         policies = numpy.array(policies)
         values = numpy.array(values)
         self.model.fit(x=states, y=[policies, values], batch_size=self.args.batch_size, epochs=self.args.epochs)
 
     def predict(self, board):
-        states = numpy.zeros((1, 2, self.args.rows, self.args.columns))
-        states[0] = self.game.fit_transform(board)
+        states = board[numpy.newaxis, ...]
         policy, value = self.model.predict(states)
         return policy[0], value[0]
 
