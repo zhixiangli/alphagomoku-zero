@@ -26,6 +26,10 @@ class MockGame(Game):
     rows = 1
     columns = 3
 
+    @property
+    def action_space_size(self):
+        return MockGame.rows * MockGame.columns
+
     def next_player(self, player):
         assert player != ChessType.EMPTY
         return ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE

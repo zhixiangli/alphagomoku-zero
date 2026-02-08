@@ -37,7 +37,7 @@ class RL:
         for i in itertools.count():
             actions, counts = mcts.simulate(board, player)
             pi = counts / sum(counts)
-            policy = numpy.zeros(self.args.rows * self.args.columns)
+            policy = numpy.zeros(self.game.action_space_size)
             policy[actions] = pi
             boards.append(board)
             players.append(player)

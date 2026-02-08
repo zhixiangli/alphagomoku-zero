@@ -1,7 +1,7 @@
 [project]
-name = "alphagomoku-zero"
+name = "alphazero-board-games"
 version = "0.1.0"
-description = "AlphaZero implementation for Gomoku"
+description = "AlphaZero implementation for board games (Gomoku, and more)"
 requires-python = ">=3.11"
 dependencies = [
     "numpy>=1.24",
