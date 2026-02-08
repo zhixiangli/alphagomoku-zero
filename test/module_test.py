@@ -44,8 +44,9 @@ class StubGame(Game):
         return ''.join(tmp), self.next_player(player)
 
     def is_terminal_state(self, board, action, player):
-        if (action > 0 and board[action - 1] == board[action]) or \
-           (action == 0 and board[action + 1] == board[action]):
+        if action > 0 and board[action - 1] == board[action]:
+            return player
+        if action + 1 < len(board) and board[action + 1] == board[action]:
             return player
         if all(ch != _ChessType.EMPTY for ch in board):
             return _ChessType.EMPTY
@@ -72,7 +73,7 @@ class StubNNet(NNet):
         self.args = args
 
     def predict(self, data):
-        return numpy.array([1] * self.game.columns), 0
+        return numpy.array([1] * self.game.action_space_size), 0
 
     def train(self, data):
         pass
