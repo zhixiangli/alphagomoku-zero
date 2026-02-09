@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "alphazero-board-games"
 version = "0.1.0"
@@ -13,3 +17,6 @@ dependencies = [
 dev = [
     "dotdict>=0.1",
 ]
+
+[tool.setuptools.packages.find]
+include = ["alphazero*", "gomoku*", "tictactoe*"]

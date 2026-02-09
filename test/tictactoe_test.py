@@ -90,8 +90,30 @@ class TestTicTacToe(unittest.TestCase):
         self.assertEqual(self.game.available_actions(sgf), [1, 2, 3, 5, 6, 7, 8])
 
     def test_get_canonical_form(self):
-        self.assertEqual(self.game.get_canonical_form('B[00];W[11]', ChessType.BLACK), 'B[00];W[11]')
-        self.assertEqual(self.game.get_canonical_form('B[00];W[11]', ChessType.WHITE), 'W[00];B[11]')
+        # Board 'B[00];W[11]' with canonical form for BLACK player
+        # Channel 0 (current/BLACK player): B[00] -> (0,0)
+        # Channel 1 (opponent/WHITE): W[11] -> (1,1)
+        canonical = self.game.get_canonical_form('B[00];W[11]', ChessType.BLACK)
+        self.assertTrue(numpy.array_equal(canonical,
+                                          numpy.array([[[1, 0, 0],
+                                                        [0, 0, 0],
+                                                        [0, 0, 0]],
+
+                                                       [[0, 0, 0],
+                                                        [0, 1, 0],
+                                                        [0, 0, 0]]])))
+        # Board 'B[00];W[11]' with canonical form for WHITE player
+        # Channel 0 (current/WHITE player): W[11] -> (1,1)
+        # Channel 1 (opponent/BLACK): B[00] -> (0,0)
+        canonical = self.game.get_canonical_form('B[00];W[11]', ChessType.WHITE)
+        self.assertTrue(numpy.array_equal(canonical,
+                                          numpy.array([[[0, 0, 0],
+                                                        [0, 1, 0],
+                                                        [0, 0, 0]],
+
+                                                       [[1, 0, 0],
+                                                        [0, 0, 0],
+                                                        [0, 0, 0]]])))
 
     def test_checkpoint_round_trip(self):
         tmpdir = tempfile.mkdtemp()
