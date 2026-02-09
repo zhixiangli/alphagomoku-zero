@@ -37,7 +37,7 @@ test/               Unit tests
 
 ### Dependencies
 
-- [TensorFlow](https://www.tensorflow.org/) ≥ 2.16
+- [PyTorch](https://pytorch.org/) ≥ 2.0
 - [Keras](https://keras.io/) ≥ 3.13.1
 - [NumPy](https://numpy.org/) ≥ 1.24
 

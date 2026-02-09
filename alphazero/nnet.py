@@ -6,6 +6,8 @@ import logging
 import os
 import time
 
+os.environ.setdefault("KERAS_BACKEND", "torch")
+
 import numpy
 from keras.layers import Conv2D, BatchNormalization, Input, Activation, Flatten, Dense, Add
 from keras.models import Model
