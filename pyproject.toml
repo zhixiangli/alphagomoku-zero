@@ -17,6 +17,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "dotdict>=0.1",
+    "ruff>=0.15.0",
 ]
 
 [tool.setuptools.packages.find]

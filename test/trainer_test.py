@@ -91,7 +91,9 @@ class TestSetupLogging(unittest.TestCase):
 
     def test_creates_parent_directory(self):
         """setup_logging creates parent directories if they don't exist."""
-        import tempfile, os, shutil
+        import tempfile
+        import os
+        import shutil
         tmpdir = tempfile.mkdtemp()
         logpath = os.path.join(tmpdir, 'subdir', 'nested', 'test.log')
         try:
