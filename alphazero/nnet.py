@@ -7,6 +7,7 @@ import os
 import time
 
 import numpy
+import tensorflow as tf
 from keras.layers import Conv2D, BatchNormalization, Input, Activation, Flatten, Dense, Add
 from keras.models import Model
 from keras.optimizers import Adam
@@ -43,6 +44,8 @@ class AlphaZeroNNet(NNet):
         self.game = game
         self.args = args
         self.model = self.build()
+        # Pre-compile prediction function for fast single-sample inference
+        self._predict_fn = tf.function(lambda x: self.model(x, training=False))
 
     def build(self):
         input_shape = (self.args.rows, self.args.columns, 2)
@@ -97,8 +100,8 @@ class AlphaZeroNNet(NNet):
 
     def predict(self, board):
         states = board[numpy.newaxis, ...]
-        policy, value = self.model.predict(states, verbose=0)
-        return policy[0], value[0][0]
+        policy, value = self._predict_fn(states)
+        return numpy.asarray(policy[0]), float(value[0][0])
 
     def save_checkpoint(self, filename):
         self.model.save_weights("%s.%s.weights.h5" % (filename, int(time.time() * 1000)))

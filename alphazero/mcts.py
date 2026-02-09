@@ -47,9 +47,11 @@ class MCTS:
         return int(numpy.argmax(values))
 
     def __backup(self, board, index, value):
-        self.mean_action_value[board][index] = (self.mean_action_value[board][index] * self.visit_count[board][
-            index] + value) / (self.visit_count[board][index] + 1.0)
-        self.visit_count[board][index] += 1
+        mav = self.mean_action_value[board]
+        vc = self.visit_count[board]
+        vc_i = vc[index]
+        mav[index] = (mav[index] * vc_i + value) / (vc_i + 1.0)
+        vc[index] = vc_i + 1
         self.total_visit_count[board] += 1
 
     def __expand(self, board, player):
