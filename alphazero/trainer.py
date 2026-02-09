@@ -10,6 +10,7 @@ config, and call :func:`run_training`.
 """
 
 import logging
+import os
 import sys
 
 
@@ -19,6 +20,9 @@ def setup_logging(logpath):
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
+    log_dir = os.path.dirname(logpath)
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
     file_handler = logging.FileHandler(logpath)
     file_handler.setFormatter(formatter)
     root_logger.addHandler(file_handler)

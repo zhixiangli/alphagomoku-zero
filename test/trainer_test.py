@@ -89,6 +89,17 @@ class TestSetupLogging(unittest.TestCase):
         self.assertEqual(mock_root.addHandler.call_count, 2)
         mock_root.setLevel.assert_called_once()
 
+    def test_creates_parent_directory(self):
+        """setup_logging creates parent directories if they don't exist."""
+        import tempfile, os, shutil
+        tmpdir = tempfile.mkdtemp()
+        logpath = os.path.join(tmpdir, 'subdir', 'nested', 'test.log')
+        try:
+            setup_logging(logpath)
+            self.assertTrue(os.path.exists(logpath))
+        finally:
+            shutil.rmtree(tmpdir)
+
 
 class TestGomokuTrainerMain(unittest.TestCase):
 
