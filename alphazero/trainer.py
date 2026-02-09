@@ -59,7 +59,6 @@ def add_alphazero_args(parser):
 
     # MCTS / self-play
     parser.add_argument("-simulation_num", type=int, default=500)
-    parser.add_argument("-history_num", type=int, default=2)
     parser.add_argument("-c_puct", type=float, default=1)
     parser.add_argument("-max_sample_pool_size", type=int, default=360000)
     parser.add_argument("-temp_step", type=int, default=1)
@@ -79,7 +78,6 @@ def extract_alphazero_args(cli_args):
         epochs=cli_args.epochs,
         max_sample_pool_size=cli_args.max_sample_pool_size,
         persist_interval=cli_args.persist_interval,
-        history_num=cli_args.history_num,
         lr=cli_args.lr,
         l2=cli_args.l2,
         conv_filters=cli_args.conv_filters,

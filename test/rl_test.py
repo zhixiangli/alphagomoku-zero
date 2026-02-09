@@ -17,7 +17,6 @@ class TestRL(unittest.TestCase):
                 "rows": 7,
                 "columns": 7,
                 "n_in_row": 2,
-                "history_num": 2,
                 "conv_filters": 16,
                 "conv_kernel": (3, 3),
                 "residual_block_num": 2,
