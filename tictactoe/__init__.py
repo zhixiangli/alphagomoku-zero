@@ -1,7 +1,5 @@
-from tictactoe.config import TicTacToeConfig
-from tictactoe.game import TicTacToeGame
-
 from alphazero.nnet import AlphaZeroNNet
+from tictactoe.game import TicTacToeGame
 
 
 def configure_module(module):
