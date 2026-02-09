@@ -5,9 +5,12 @@
 #   pip install py-spy    (or: uv pip install py-spy)
 #
 # Usage:
-#   sudo bash scripts/profile.sh                   # default: 60 s, 100 Hz
-#   sudo bash scripts/profile.sh --duration 120    # custom duration
-#   sudo bash scripts/profile.sh --rate 200        # custom sample rate
+#   bash scripts/profile.sh                        # default: 60 s, 100 Hz
+#   bash scripts/profile.sh --duration 120         # custom duration
+#   bash scripts/profile.sh --rate 200             # custom sample rate
+#
+# On macOS, py-spy needs elevated privileges. The script will automatically
+# prompt for sudo when needed, preserving the resolved Python/py-spy paths.
 #
 # Outputs (written to profiling_output/):
 #   flamegraph.svg   – Flame graph (open in a browser)
@@ -15,7 +18,7 @@
 #   raw.txt          – Collapsed stack traces with sample counts
 #
 # All extra arguments are forwarded to the trainer, e.g.:
-#   sudo bash scripts/profile.sh -- -rows 9 -columns 9 -n_in_row 4
+#   bash scripts/profile.sh -- -rows 9 -columns 9 -n_in_row 4
 
 set -euo pipefail
 
@@ -37,16 +40,33 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Resolve absolute paths *before* any sudo so they survive PATH resets.
 PYTHON="$(uv run python -c 'import sys; print(sys.executable)')" || {
     echo "Error: failed to resolve Python via uv. Is uv installed?" >&2
     exit 1
 }
+PYSPY="$(command -v py-spy)" || {
+    echo "Error: py-spy not found. Install with: uv pip install py-spy" >&2
+    exit 1
+}
+
+# On macOS, py-spy requires elevated privileges (SIP). Use sudo with the
+# resolved absolute path so that the user's PATH doesn't need to be inherited.
+SUDO=""
+if [[ "$(uname)" == "Darwin" ]]; then
+    SUDO="sudo"
+    echo "Note: macOS detected — py-spy requires sudo for process inspection."
+    echo "      You may be prompted for your password."
+    echo ""
+fi
+
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 OUTDIR="${OUTDIR}/${TIMESTAMP}"
 mkdir -p "${OUTDIR}"
 
 echo "=== py-spy profiling ==="
 echo "  Python:       ${PYTHON}"
+echo "  py-spy:       ${PYSPY}"
 echo "  Duration:     ${DURATION}s"
 echo "  Sample rate:  ${RATE} Hz"
 echo "  Output dir:   ${OUTDIR}"
@@ -55,7 +75,7 @@ echo ""
 
 # 1. Flame graph (SVG) — best for finding the hottest code paths
 echo "[1/3] Recording flame graph (${DURATION}s) ..."
-py-spy record \
+${SUDO} "${PYSPY}" record \
     --output "${OUTDIR}/flamegraph.svg" \
     --format flamegraph \
     --duration "${DURATION}" \
@@ -65,7 +85,7 @@ py-spy record \
 
 # 2. Speedscope JSON — interactive timeline view at https://www.speedscope.app
 echo "[2/3] Recording speedscope profile (${DURATION}s) ..."
-py-spy record \
+${SUDO} "${PYSPY}" record \
     --output "${OUTDIR}/speedscope.json" \
     --format speedscope \
     --duration "${DURATION}" \
@@ -75,7 +95,7 @@ py-spy record \
 
 # 3. Raw collapsed stacks — text summary sortable by frequency
 echo "[3/3] Recording raw stacks (${DURATION}s) ..."
-py-spy record \
+${SUDO} "${PYSPY}" record \
     --output "${OUTDIR}/raw.txt" \
     --format raw \
     --duration "${DURATION}" \
