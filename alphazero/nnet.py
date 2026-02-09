@@ -45,40 +45,40 @@ class AlphaZeroNNet(NNet):
         self.model = self.build()
 
     def build(self):
-        input_shape = (2, self.args.rows, self.args.columns)
+        input_shape = (self.args.rows, self.args.columns, 2)
         action_space_size = self.args.rows * self.args.columns
 
         def build_residual_block(x):
-            block = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_first',
+            block = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_last',
                            kernel_regularizer=l2(self.args.l2))(x)
-            block = BatchNormalization(axis=1)(block)
+            block = BatchNormalization(axis=-1)(block)
             block = Activation('relu')(block)
-            block = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_first',
+            block = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_last',
                            kernel_regularizer=l2(self.args.l2))(block)
-            block = BatchNormalization(axis=1)(block)
+            block = BatchNormalization(axis=-1)(block)
             block = Add()([x, block])
             block = Activation('relu')(block)
             return block
 
         input_layer = Input(shape=input_shape)
 
-        residual = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_first',
+        residual = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_last',
                           kernel_regularizer=l2(self.args.l2))(input_layer)
-        residual = BatchNormalization(axis=1)(residual)
+        residual = BatchNormalization(axis=-1)(residual)
         residual = Activation('relu')(residual)
         for _ in range(self.args.residual_block_num):
             residual = build_residual_block(residual)
 
-        policy = Conv2D(2, (1, 1), padding="same", data_format='channels_first', kernel_regularizer=l2(self.args.l2))(
+        policy = Conv2D(2, (1, 1), padding="same", data_format='channels_last', kernel_regularizer=l2(self.args.l2))(
             residual)
-        policy = BatchNormalization(axis=1)(policy)
+        policy = BatchNormalization(axis=-1)(policy)
         policy = Activation('relu')(policy)
         policy = Flatten()(policy)
         policy = Dense(action_space_size, activation="softmax")(policy)
 
-        value = Conv2D(1, (1, 1), padding="same", data_format='channels_first', kernel_regularizer=l2(self.args.l2))(
+        value = Conv2D(1, (1, 1), padding="same", data_format='channels_last', kernel_regularizer=l2(self.args.l2))(
             residual)
-        value = BatchNormalization(axis=1)(value)
+        value = BatchNormalization(axis=-1)(value)
         value = Activation('relu')(value)
         value = Flatten()(value)
         value = Dense(256, activation='relu')(value)
