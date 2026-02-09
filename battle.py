@@ -72,10 +72,10 @@ if __name__ == "__main__":
     parser.add_argument("-is_battle", type=int, default=0)
     parser.add_argument("-eval", type=int, default=0)
     parser.add_argument("-num_eval_games", type=int, default=50)
-    parser.add_argument("-eval_checkpoint_path", default="./data/model2")
+    parser.add_argument("-eval_checkpoint_path", default="./data/gomoku/model2")
     parser.add_argument("-eval_simulation_num", type=int, default=None)
     parser.add_argument("-eval_c_puct", type=float, default=None)
-    parser.add_argument("-logpath", default="./data/gomoku.log")
+    parser.add_argument("-logpath", default="./data/gomoku/gomoku.log")
 
     # Game-specific config (Gomoku)
     parser.add_argument("-rows", type=int, default=15)
@@ -83,7 +83,11 @@ if __name__ == "__main__":
     parser.add_argument("-n_in_row", type=int, default=5)
 
     # Common AlphaZero arguments
-    add_alphazero_args(parser)
+    add_alphazero_args(
+        parser,
+        save_checkpoint_path="./data/gomoku/model",
+        sample_pool_file="./data/gomoku/samples.pkl",
+    )
 
     cli_args = parser.parse_args()
 

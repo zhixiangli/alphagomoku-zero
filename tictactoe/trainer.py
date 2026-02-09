@@ -30,10 +30,14 @@ def main():
     parser.add_argument("-rows", type=int, default=3)
     parser.add_argument("-columns", type=int, default=3)
     parser.add_argument("-n_in_row", type=int, default=3)
-    parser.add_argument("-logpath", default="./data/tictactoe.log")
+    parser.add_argument("-logpath", default="./data/tictactoe/tictactoe.log")
 
     # Common AlphaZero arguments
-    add_alphazero_args(parser)
+    add_alphazero_args(
+        parser,
+        save_checkpoint_path="./data/tictactoe/model",
+        sample_pool_file="./data/tictactoe/samples.pkl",
+    )
 
     cli_args = parser.parse_args()
     setup_logging(cli_args.logpath)
