@@ -22,6 +22,20 @@ class NNet:
     def predict(self, data):
         raise NotImplementedError()
 
+    def batch_predict(self, boards):
+        """Predict policy and value for a batch of boards.
+
+        Default implementation calls predict() in a loop.
+        Subclasses should override for efficient batched inference.
+        """
+        policies = []
+        values = []
+        for board in boards:
+            p, v = self.predict(board)
+            policies.append(p)
+            values.append(v)
+        return numpy.array(policies), numpy.array(values)
+
     def save_checkpoint(self, filename):
         raise NotImplementedError()
 
@@ -102,6 +116,19 @@ class AlphaZeroNNet(NNet):
         states = board[numpy.newaxis, ...]
         policy, value = self._predict_fn(states)
         return numpy.asarray(policy[0]), float(value[0][0])
+
+    def batch_predict(self, boards):
+        """Predict policy and value for a batch of board states.
+
+        Args:
+            boards: numpy array of shape (batch, rows, cols, 2)
+
+        Returns:
+            policies: numpy array of shape (batch, action_space)
+            values: numpy array of shape (batch,)
+        """
+        policies, values = self._predict_fn(boards)
+        return numpy.asarray(policies), numpy.asarray(values).flatten()
 
     def save_checkpoint(self, filename):
         self.model.save_weights("%s.%s.weights.h5" % (filename, int(time.time() * 1000)))
