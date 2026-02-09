@@ -85,7 +85,7 @@ uv run python tictactoe/trainer.py
 | `-simulation_num` | 500 (Gomoku) / 200 (TTT) | MCTS simulations per move |
 | `-batch_size` | 1024 (Gomoku) / 512 (TTT) | Training batch size |
 | `-lr` | 5e-3 | Learning rate |
-| `-epochs` | 5 | Training epochs per iteration |
+| `-epochs` | 20 | Training epochs per iteration |
 | `-c_puct` | 1.0 | MCTS exploration constant |
 | `-save_checkpoint_path` | `./data/model` | Path to save model checkpoints |
 | `-residual_block_num` | 2 | Number of residual blocks in the network |

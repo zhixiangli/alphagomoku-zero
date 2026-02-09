@@ -95,7 +95,7 @@ if __name__ == '__main__':
     parser.add_argument('-persist_interval', type=int, default=50)
 
     parser.add_argument('-batch_size', type=int, default=1024)
-    parser.add_argument('-epochs', type=int, default=5)
+    parser.add_argument('-epochs', type=int, default=20)
     parser.add_argument('-lr', type=float, default=5e-3)
     parser.add_argument('-l2', type=float, default=1e-4)
     parser.add_argument('-conv_filters', type=int, default=256)
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     parser.add_argument('-history_num', type=int, default=2)
     parser.add_argument('-c_puct', type=float, default=1)
     parser.add_argument('-max_sample_pool_size', type=int, default=360000)
-    parser.add_argument('-temp_step', type=int, default=2)
+    parser.add_argument('-temp_step', type=int, default=1)
 
     cli_args = parser.parse_args()
 
