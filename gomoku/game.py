@@ -9,16 +9,15 @@ from alphazero.game import Game
 
 
 class ChessType:
-    BLACK = 'B'
-    WHITE = 'W'
-    EMPTY = '.'
+    BLACK = "B"
+    WHITE = "W"
+    EMPTY = "."
 
 
 class GomokuGame(Game):
-
     def __init__(self, args):
         self.args = args
-        self.semicolon = ';'
+        self.semicolon = ";"
         self.directions = [[1, 1], [1, -1], [0, 1], [1, 0]]
 
     def next_player(self, player):
@@ -27,25 +26,35 @@ class GomokuGame(Game):
 
     def next_state(self, board, action, player):
         stone = player + self.hex_action(action)
-        return board + self.semicolon + stone if board else stone, self.next_player(player)
+        return board + self.semicolon + stone if board else stone, self.next_player(
+            player
+        )
 
     def is_terminal_state(self, board, action, player):
         stones = board.split(self.semicolon)
         if not stones:
             return None
-        board_array = numpy.full((self.args.rows, self.args.columns), ChessType.EMPTY, dtype='U1')
+        board_array = numpy.full(
+            (self.args.rows, self.args.columns), ChessType.EMPTY, dtype="U1"
+        )
         for stone in stones:
             (x, y) = self.dec_action(stone)
             if 0 <= x < self.args.rows and 0 <= y < self.args.columns:
                 board_array[x, y] = stone[0]
-        if any(self.is_win(action, player, direction, board_array) for direction in self.directions):
+        if any(
+            self.is_win(action, player, direction, board_array)
+            for direction in self.directions
+        ):
             return player
-        if numpy.sum(board_array != ChessType.EMPTY) == self.args.rows * self.args.columns:
+        if (
+            numpy.sum(board_array != ChessType.EMPTY)
+            == self.args.rows * self.args.columns
+        ):
             return Game.DRAW
         return None
 
     def get_initial_state(self):
-        return '', ChessType.BLACK
+        return "", ChessType.BLACK
 
     def available_actions(self, board):
         total = self.args.rows * self.args.columns
@@ -61,13 +70,13 @@ class GomokuGame(Game):
 
         board = self.to_board(board)
         for row in board:
-            logging.info(''.join(row))
+            logging.info("".join(row))
 
         visited = numpy.zeros(self.args.rows * self.args.columns)
         visited[actions] = counts
         visited = visited.reshape(self.args.rows, self.args.columns)
         for row in visited:
-            logging.info(','.join(["%3d" % r for r in row]))
+            logging.info(",".join(["%3d" % r for r in row]))
 
     def get_canonical_form(self, board, player):
         """Returns board tensor from the perspective of the current player.
@@ -88,7 +97,9 @@ class GomokuGame(Game):
         return feature
 
     def to_board(self, sgf):
-        board = numpy.full((self.args.rows, self.args.columns), ChessType.EMPTY, dtype='U1')
+        board = numpy.full(
+            (self.args.rows, self.args.columns), ChessType.EMPTY, dtype="U1"
+        )
         for stone in self.structure_sgf(sgf):
             color, (x, y) = stone
             board[x, y] = color
@@ -99,9 +110,12 @@ class GomokuGame(Game):
 
     def hex_action(self, action):
         def dec_to_hex(dec):
-            return format(dec, 'x')
+            return format(dec, "x")
 
-        return "[%s%s]" % (dec_to_hex(action // self.args.columns), dec_to_hex(action % self.args.columns))
+        return "[%s%s]" % (
+            dec_to_hex(action // self.args.columns),
+            dec_to_hex(action % self.args.columns),
+        )
 
     def dec_action(self, stone):
         def hex_to_dec(hex):
@@ -123,7 +137,7 @@ class GomokuGame(Game):
         if numpy.sum(matches) < n:
             return False
         kernel = numpy.ones(n, dtype=int)
-        conv = numpy.convolve(matches.astype(int), kernel, mode='valid')
+        conv = numpy.convolve(matches.astype(int), kernel, mode="valid")
         return bool(numpy.any(conv >= n))
 
     # Data augmentation methods (merged from GomokuRL)
@@ -154,4 +168,3 @@ class GomokuGame(Game):
         result[0::2] = rotations.reshape(4, -1)
         result[1::2] = flipped.reshape(4, -1)
         return list(result)
-

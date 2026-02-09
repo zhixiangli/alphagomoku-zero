@@ -38,8 +38,8 @@ class AlphaZeroConfig:
     residual_block_num: int = 2
 
     # Persistence paths
-    save_checkpoint_path: str = './data/model'
-    sample_pool_file: str = './data/samples.pkl'
+    save_checkpoint_path: str = "./data/model"
+    sample_pool_file: str = "./data/samples.pkl"
 
     @property
     def action_space_size(self) -> int:

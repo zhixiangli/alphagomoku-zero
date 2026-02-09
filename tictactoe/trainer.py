@@ -12,20 +12,25 @@ Usage::
 import argparse
 
 from alphazero.module import AlphaZeroModule
-from alphazero.trainer import setup_logging, add_alphazero_args, extract_alphazero_args, run_training
+from alphazero.trainer import (
+    setup_logging,
+    add_alphazero_args,
+    extract_alphazero_args,
+    run_training,
+)
 from tictactoe import configure_module
 from tictactoe.config import TicTacToeConfig
 from tictactoe.game import TicTacToeGame
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Train AlphaZero on Tic-Tac-Toe')
+    parser = argparse.ArgumentParser(description="Train AlphaZero on Tic-Tac-Toe")
 
     # Tic-Tac-Toe-specific arguments
-    parser.add_argument('-rows', type=int, default=3)
-    parser.add_argument('-columns', type=int, default=3)
-    parser.add_argument('-n_in_row', type=int, default=3)
-    parser.add_argument('-logpath', default='./data/tictactoe.log')
+    parser.add_argument("-rows", type=int, default=3)
+    parser.add_argument("-columns", type=int, default=3)
+    parser.add_argument("-n_in_row", type=int, default=3)
+    parser.add_argument("-logpath", default="./data/tictactoe.log")
 
     # Common AlphaZero arguments
     add_alphazero_args(parser)
@@ -45,5 +50,5 @@ def main():
     run_training(module, TicTacToeGame, config)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -16,7 +16,9 @@ import sys
 
 def setup_logging(logpath, console=True):
     """Configure the root logger with file and optional console handlers."""
-    formatter = logging.Formatter("%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s"
+    )
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
@@ -40,27 +42,27 @@ def add_alphazero_args(parser):
     separately by each game's trainer.
     """
     # Persistence
-    parser.add_argument('-save_checkpoint_path', default='./data/model')
-    parser.add_argument('-sample_pool_file', default='./data/samples.pkl')
-    parser.add_argument('-persist_interval', type=int, default=50)
+    parser.add_argument("-save_checkpoint_path", default="./data/model")
+    parser.add_argument("-sample_pool_file", default="./data/samples.pkl")
+    parser.add_argument("-persist_interval", type=int, default=50)
 
     # Training
-    parser.add_argument('-batch_size', type=int, default=1024)
-    parser.add_argument('-epochs', type=int, default=20)
-    parser.add_argument('-lr', type=float, default=5e-3)
-    parser.add_argument('-l2', type=float, default=1e-4)
+    parser.add_argument("-batch_size", type=int, default=1024)
+    parser.add_argument("-epochs", type=int, default=20)
+    parser.add_argument("-lr", type=float, default=5e-3)
+    parser.add_argument("-l2", type=float, default=1e-4)
 
     # Neural network architecture
-    parser.add_argument('-conv_filters', type=int, default=256)
-    parser.add_argument('-conv_kernel', default=(3, 3))
-    parser.add_argument('-residual_block_num', type=int, default=2)
+    parser.add_argument("-conv_filters", type=int, default=256)
+    parser.add_argument("-conv_kernel", default=(3, 3))
+    parser.add_argument("-residual_block_num", type=int, default=2)
 
     # MCTS / self-play
-    parser.add_argument('-simulation_num', type=int, default=500)
-    parser.add_argument('-history_num', type=int, default=2)
-    parser.add_argument('-c_puct', type=float, default=1)
-    parser.add_argument('-max_sample_pool_size', type=int, default=360000)
-    parser.add_argument('-temp_step', type=int, default=1)
+    parser.add_argument("-simulation_num", type=int, default=500)
+    parser.add_argument("-history_num", type=int, default=2)
+    parser.add_argument("-c_puct", type=float, default=1)
+    parser.add_argument("-max_sample_pool_size", type=int, default=360000)
+    parser.add_argument("-temp_step", type=int, default=1)
 
 
 def extract_alphazero_args(cli_args):

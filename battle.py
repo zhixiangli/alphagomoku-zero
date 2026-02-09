@@ -12,7 +12,12 @@ import numpy
 
 from alphazero.mcts import MCTS
 from alphazero.module import AlphaZeroModule
-from alphazero.trainer import setup_logging, add_alphazero_args, extract_alphazero_args, run_training
+from alphazero.trainer import (
+    setup_logging,
+    add_alphazero_args,
+    extract_alphazero_args,
+    run_training,
+)
 from gomoku import configure_module
 from gomoku.config import GomokuConfig
 from gomoku.game import GomokuGame, ChessType
@@ -31,17 +36,16 @@ class BattleAgent:
             if not line:
                 continue
             msg = json.loads(line)
-            if msg['command'] == Command.NEXT_BLACK.name:
-                print(self.next(msg['chessboard'], ChessType.BLACK), flush=True)
-            elif msg['command'] == Command.NEXT_WHITE.name:
-                print(self.next(msg['chessboard'], ChessType.WHITE), flush=True)
+            if msg["command"] == Command.NEXT_BLACK.name:
+                print(self.next(msg["chessboard"], ChessType.BLACK), flush=True)
+            elif msg["command"] == Command.NEXT_WHITE.name:
+                print(self.next(msg["chessboard"], ChessType.WHITE), flush=True)
 
     def next(self, sgf, player):
         raise NotImplementedError()
 
 
 class GomokuBattleAgent(BattleAgent):
-
     def __init__(self, nnet, game, args):
         self.nnet = nnet
         self.game = game
@@ -51,28 +55,32 @@ class GomokuBattleAgent(BattleAgent):
     def next(self, sgf, player):
         actions, counts = self.mcts.simulate(sgf, player)
         pi = counts / sum(counts)
-        index = numpy.argmax(0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi))))
+        index = numpy.argmax(
+            0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
+        )
         action = actions[index]
-        return {'rowIndex': action // self.args.rows, 'columnIndex': action % self.args.rows}
+        return {
+            "rowIndex": action // self.args.rows,
+            "columnIndex": action % self.args.rows,
+        }
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Application flags (not part of game/algorithm config)
-    parser.add_argument('-is_battle', type=int, default=0)
-    parser.add_argument('-eval', type=int, default=0)
-    parser.add_argument('-num_eval_games', type=int, default=50)
-    parser.add_argument('-eval_checkpoint_path', default='./data/model2')
-    parser.add_argument('-eval_simulation_num', type=int, default=None)
-    parser.add_argument('-eval_c_puct', type=float, default=None)
-    parser.add_argument('-logpath', default='./data/gomoku.log')
+    parser.add_argument("-is_battle", type=int, default=0)
+    parser.add_argument("-eval", type=int, default=0)
+    parser.add_argument("-num_eval_games", type=int, default=50)
+    parser.add_argument("-eval_checkpoint_path", default="./data/model2")
+    parser.add_argument("-eval_simulation_num", type=int, default=None)
+    parser.add_argument("-eval_c_puct", type=float, default=None)
+    parser.add_argument("-logpath", default="./data/gomoku.log")
 
     # Game-specific config (Gomoku)
-    parser.add_argument('-rows', type=int, default=15)
-    parser.add_argument('-columns', type=int, default=15)
-    parser.add_argument('-n_in_row', type=int, default=5)
+    parser.add_argument("-rows", type=int, default=15)
+    parser.add_argument("-columns", type=int, default=15)
+    parser.add_argument("-n_in_row", type=int, default=5)
 
     # Common AlphaZero arguments
     add_alphazero_args(parser)
@@ -105,8 +113,12 @@ if __name__ == '__main__':
         config2 = replace(
             config,
             save_checkpoint_path=cli_args.eval_checkpoint_path,
-            simulation_num=cli_args.eval_simulation_num if cli_args.eval_simulation_num is not None else config.simulation_num,
-            c_puct=cli_args.eval_c_puct if cli_args.eval_c_puct is not None else config.c_puct,
+            simulation_num=cli_args.eval_simulation_num
+            if cli_args.eval_simulation_num is not None
+            else config.simulation_num,
+            c_puct=cli_args.eval_c_puct
+            if cli_args.eval_c_puct is not None
+            else config.c_puct,
         )
         evaluator = module.create_evaluator(GomokuGame, config, config2)
         evaluator.nnet1.load_checkpoint(config.save_checkpoint_path)

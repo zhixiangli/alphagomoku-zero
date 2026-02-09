@@ -34,7 +34,7 @@ class Game:
       concrete default method using the ``DRAW`` sentinel.
     """
 
-    DRAW = 'draw'
+    DRAW = "draw"
     """Sentinel returned by ``is_terminal_state`` to indicate a draw.
 
     Using a dedicated sentinel (rather than a game-specific constant like

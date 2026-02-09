@@ -41,7 +41,7 @@ class Evaluator:
         draws = 0
 
         for i in range(num_games):
-            agent1_is_first = (i % 2 == 0)
+            agent1_is_first = i % 2 == 0
             result = self._play_game(agent1_is_first)
 
             if result == 1:
@@ -53,15 +53,20 @@ class Evaluator:
 
             logging.info(
                 "Game %d/%d: %s | Running: agent1 %d - agent2 %d - draws %d",
-                i + 1, num_games,
-                "agent1 wins" if result == 1 else ("agent2 wins" if result == -1 else "draw"),
-                agent1_wins, agent2_wins, draws,
+                i + 1,
+                num_games,
+                "agent1 wins"
+                if result == 1
+                else ("agent2 wins" if result == -1 else "draw"),
+                agent1_wins,
+                agent2_wins,
+                draws,
             )
 
         results = {
-            'agent1_wins': agent1_wins,
-            'agent2_wins': agent2_wins,
-            'draws': draws,
+            "agent1_wins": agent1_wins,
+            "agent2_wins": agent2_wins,
+            "draws": draws,
         }
         logging.info("Evaluation complete: %s", results)
         return results

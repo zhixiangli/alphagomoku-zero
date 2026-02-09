@@ -5,7 +5,6 @@ import numpy
 
 
 class MCTS:
-
     def __init__(self, nnet, game, args):
         self.nnet = nnet
         self.game = game
@@ -22,8 +21,14 @@ class MCTS:
     def simulate(self, board, player):
         for _ in range(self.args.simulation_num):
             self.search(board, player)
-        self.game.log_status(board, numpy.copy(self.visit_count[board]), numpy.copy(self.available_actions[board]))
-        return numpy.copy(self.available_actions[board]), numpy.copy(self.visit_count[board])
+        self.game.log_status(
+            board,
+            numpy.copy(self.visit_count[board]),
+            numpy.copy(self.available_actions[board]),
+        )
+        return numpy.copy(self.available_actions[board]), numpy.copy(
+            self.visit_count[board]
+        )
 
     def search(self, board, player):
         if board not in self.prior_probability:  # leaf
@@ -32,7 +37,9 @@ class MCTS:
         action = self.available_actions[board][index]
         next_board, next_player = self.game.next_state(board, action, player)
         if next_board not in self.terminal_state:
-            self.terminal_state[next_board] = self.game.is_terminal_state(next_board, action, player)
+            self.terminal_state[next_board] = self.game.is_terminal_state(
+                next_board, action, player
+            )
         if self.terminal_state[next_board] is not None:
             value = 1 if player == self.terminal_state[next_board] else 0
         else:
@@ -41,14 +48,20 @@ class MCTS:
         return -value
 
     def __select(self, board):
-        u = self.args.c_puct * self.prior_probability[board] * numpy.sqrt(
-            self.total_visit_count[board]) / (1.0 + self.visit_count[board])
+        u = (
+            self.args.c_puct
+            * self.prior_probability[board]
+            * numpy.sqrt(self.total_visit_count[board])
+            / (1.0 + self.visit_count[board])
+        )
         values = self.mean_action_value[board] + u
         return int(numpy.argmax(values))
 
     def __backup(self, board, index, value):
-        self.mean_action_value[board][index] = (self.mean_action_value[board][index] * self.visit_count[board][
-            index] + value) / (self.visit_count[board][index] + 1.0)
+        self.mean_action_value[board][index] = (
+            self.mean_action_value[board][index] * self.visit_count[board][index]
+            + value
+        ) / (self.visit_count[board][index] + 1.0)
         self.visit_count[board][index] += 1
         self.total_visit_count[board] += 1
 

@@ -8,14 +8,21 @@ import time
 
 import numpy
 import tensorflow as tf
-from keras.layers import Conv2D, BatchNormalization, Input, Activation, Flatten, Dense, Add
+from keras.layers import (
+    Conv2D,
+    BatchNormalization,
+    Input,
+    Activation,
+    Flatten,
+    Dense,
+    Add,
+)
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.regularizers import l2
 
 
 class NNet:
-
     def train(self, data):
         raise NotImplementedError()
 
@@ -51,43 +58,71 @@ class AlphaZeroNNet(NNet):
         action_space_size = self.args.rows * self.args.columns
 
         def build_residual_block(x):
-            block = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_last',
-                           kernel_regularizer=l2(self.args.l2))(x)
+            block = Conv2D(
+                self.args.conv_filters,
+                self.args.conv_kernel,
+                padding="same",
+                data_format="channels_last",
+                kernel_regularizer=l2(self.args.l2),
+            )(x)
             block = BatchNormalization(axis=-1)(block)
-            block = Activation('relu')(block)
-            block = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_last',
-                           kernel_regularizer=l2(self.args.l2))(block)
+            block = Activation("relu")(block)
+            block = Conv2D(
+                self.args.conv_filters,
+                self.args.conv_kernel,
+                padding="same",
+                data_format="channels_last",
+                kernel_regularizer=l2(self.args.l2),
+            )(block)
             block = BatchNormalization(axis=-1)(block)
             block = Add()([x, block])
-            block = Activation('relu')(block)
+            block = Activation("relu")(block)
             return block
 
         input_layer = Input(shape=input_shape)
 
-        residual = Conv2D(self.args.conv_filters, self.args.conv_kernel, padding="same", data_format='channels_last',
-                          kernel_regularizer=l2(self.args.l2))(input_layer)
+        residual = Conv2D(
+            self.args.conv_filters,
+            self.args.conv_kernel,
+            padding="same",
+            data_format="channels_last",
+            kernel_regularizer=l2(self.args.l2),
+        )(input_layer)
         residual = BatchNormalization(axis=-1)(residual)
-        residual = Activation('relu')(residual)
+        residual = Activation("relu")(residual)
         for _ in range(self.args.residual_block_num):
             residual = build_residual_block(residual)
 
-        policy = Conv2D(2, (1, 1), padding="same", data_format='channels_last', kernel_regularizer=l2(self.args.l2))(
-            residual)
+        policy = Conv2D(
+            2,
+            (1, 1),
+            padding="same",
+            data_format="channels_last",
+            kernel_regularizer=l2(self.args.l2),
+        )(residual)
         policy = BatchNormalization(axis=-1)(policy)
-        policy = Activation('relu')(policy)
+        policy = Activation("relu")(policy)
         policy = Flatten()(policy)
         policy = Dense(action_space_size, activation="softmax")(policy)
 
-        value = Conv2D(1, (1, 1), padding="same", data_format='channels_last', kernel_regularizer=l2(self.args.l2))(
-            residual)
+        value = Conv2D(
+            1,
+            (1, 1),
+            padding="same",
+            data_format="channels_last",
+            kernel_regularizer=l2(self.args.l2),
+        )(residual)
         value = BatchNormalization(axis=-1)(value)
-        value = Activation('relu')(value)
+        value = Activation("relu")(value)
         value = Flatten()(value)
-        value = Dense(256, activation='relu')(value)
-        value = Dense(1, activation='tanh')(value)
+        value = Dense(256, activation="relu")(value)
+        value = Dense(1, activation="tanh")(value)
 
         model = Model(inputs=input_layer, outputs=[policy, value])
-        model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam(learning_rate=self.args.lr))
+        model.compile(
+            loss=["categorical_crossentropy", "mean_squared_error"],
+            optimizer=Adam(learning_rate=self.args.lr),
+        )
         return model
 
     def train(self, data):
@@ -95,7 +130,12 @@ class AlphaZeroNNet(NNet):
         states = numpy.array(boards)
         policies = numpy.array(policies)
         values = numpy.array(values)
-        self.model.fit(x=states, y=[policies, values], batch_size=self.args.batch_size, epochs=self.args.epochs)
+        self.model.fit(
+            x=states,
+            y=[policies, values],
+            batch_size=self.args.batch_size,
+            epochs=self.args.epochs,
+        )
 
     def predict(self, board):
         states = board[numpy.newaxis, ...]
@@ -103,10 +143,12 @@ class AlphaZeroNNet(NNet):
         return policy[0].numpy(), value[0][0].numpy()
 
     def save_checkpoint(self, filename):
-        self.model.save_weights("%s.%s.weights.h5" % (filename, int(time.time() * 1000)))
+        self.model.save_weights(
+            "%s.%s.weights.h5" % (filename, int(time.time() * 1000))
+        )
 
     def load_checkpoint(self, filename):
-        files = glob.glob(filename + '*.weights.h5')
+        files = glob.glob(filename + "*.weights.h5")
         if len(files) < 1:
             return
         latest_file = max(files, key=os.path.getmtime)
