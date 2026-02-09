@@ -31,6 +31,8 @@ PYSPY="$(command -v py-spy)"
 
 OUTDIR="${OUTDIR}/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "${OUTDIR}"
+OUTDIR="$(cd "${OUTDIR}" && pwd)"
+echo "Output directory: ${OUTDIR}"
 
 FORMATS=("flamegraph:flamegraph.svg" "speedscope:speedscope.json" "raw:raw.txt")
 
