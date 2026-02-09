@@ -87,7 +87,7 @@ uv run python tictactoe/trainer.py
 | `-lr` | 5e-3 | Learning rate |
 | `-epochs` | 20 | Training epochs per iteration |
 | `-c_puct` | 1.0 | MCTS exploration constant |
-| `-save_checkpoint_path` | `./data/model` | Path to save model checkpoints |
+| `-save_checkpoint_path` | `./data/<game>/model` | Path to save model checkpoints |
 | `-residual_block_num` | 2 | Number of residual blocks in the network |
 | `-conv_filters` | 256 (Gomoku) / 64 (TTT) | Convolutional filter count |
 
@@ -126,7 +126,7 @@ uv run python battle.py -is_battle 1
 Compare two trained model checkpoints by playing them against each other:
 
 ```sh
-uv run python battle.py -eval 1 -save_checkpoint_path ./data/model -eval_checkpoint_path ./data/model2 -num_eval_games 50
+uv run python battle.py -eval 1 -save_checkpoint_path ./data/gomoku/model -eval_checkpoint_path ./data/gomoku/model2 -num_eval_games 50
 ```
 
 ## License

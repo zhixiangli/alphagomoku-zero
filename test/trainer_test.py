@@ -45,6 +45,18 @@ class TestAddAlphaZeroArgs(unittest.TestCase):
         self.assertEqual(args.batch_size, 64)
         self.assertAlmostEqual(args.lr, 0.001)
 
+    def test_custom_path_defaults(self):
+        """Game-specific path defaults are respected."""
+        parser = argparse.ArgumentParser()
+        add_alphazero_args(
+            parser,
+            save_checkpoint_path="./data/gomoku/model",
+            sample_pool_file="./data/gomoku/samples.pkl",
+        )
+        args = parser.parse_args([])
+        self.assertEqual(args.save_checkpoint_path, "./data/gomoku/model")
+        self.assertEqual(args.sample_pool_file, "./data/gomoku/samples.pkl")
+
 
 class TestExtractAlphaZeroArgs(unittest.TestCase):
     def test_returns_correct_keys(self):
@@ -148,6 +160,8 @@ class TestGomokuTrainerMain(unittest.TestCase):
         self.assertEqual(config.rows, 9)
         self.assertEqual(config.columns, 9)
         self.assertEqual(config.n_in_row, 3)
+        self.assertEqual(config.save_checkpoint_path, "./data/gomoku/model")
+        self.assertEqual(config.sample_pool_file, "./data/gomoku/samples.pkl")
 
 
 class TestTicTacToeTrainerMain(unittest.TestCase):
@@ -174,6 +188,8 @@ class TestTicTacToeTrainerMain(unittest.TestCase):
         self.assertEqual(config.rows, 3)
         self.assertEqual(config.columns, 3)
         self.assertEqual(config.n_in_row, 3)
+        self.assertEqual(config.save_checkpoint_path, "./data/tictactoe/model")
+        self.assertEqual(config.sample_pool_file, "./data/tictactoe/samples.pkl")
 
 
 if __name__ == "__main__":

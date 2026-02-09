@@ -35,15 +35,21 @@ def setup_logging(logpath, console=True):
         root_logger.addHandler(console_handler)
 
 
-def add_alphazero_args(parser):
+def add_alphazero_args(
+    parser,
+    save_checkpoint_path="./data/model",
+    sample_pool_file="./data/samples.pkl",
+):
     """Add common AlphaZero config arguments to an argparse parser.
 
     Game-specific arguments (e.g. board dimensions) should be added
-    separately by each game's trainer.
+    separately by each game's trainer.  Pass *save_checkpoint_path* and
+    *sample_pool_file* to override the default persistence paths for a
+    particular game.
     """
     # Persistence
-    parser.add_argument("-save_checkpoint_path", default="./data/model")
-    parser.add_argument("-sample_pool_file", default="./data/samples.pkl")
+    parser.add_argument("-save_checkpoint_path", default=save_checkpoint_path)
+    parser.add_argument("-sample_pool_file", default=sample_pool_file)
     parser.add_argument("-persist_interval", type=int, default=50)
 
     # Training

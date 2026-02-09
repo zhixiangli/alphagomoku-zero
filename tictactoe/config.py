@@ -20,3 +20,7 @@ class TicTacToeConfig(AlphaZeroConfig):
     # Default Tic-Tac-Toe board size
     rows: int = 3
     columns: int = 3
+
+    # Game-specific persistence paths
+    save_checkpoint_path: str = "./data/tictactoe/model"
+    sample_pool_file: str = "./data/tictactoe/samples.pkl"
