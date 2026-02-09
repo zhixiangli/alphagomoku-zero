@@ -28,6 +28,7 @@ class GomokuGame(Game):
         ]
 
     def next_player(self, player):
+        assert player != ChessType.EMPTY
         return ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
 
     def next_state(self, board, action, player):

@@ -131,14 +131,8 @@ class MCTS:
                 canonical_forms.append(self.game.get_canonical_form(leaf_board, leaf_player))
 
         if canonical_forms:
-            if len(canonical_forms) == 1:
-                probas = numpy.empty((1, self.args.rows * self.args.columns))
-                proba, value = self.nnet.predict(canonical_forms[0])
-                probas[0] = proba
-                values = numpy.array([value])
-            else:
-                batch = numpy.array(canonical_forms)
-                probas, values = self.nnet.batch_predict(batch)
+            batch = numpy.array(canonical_forms)
+            probas, values = self.nnet.batch_predict(batch)
 
             # Expand each unique leaf
             leaf_values = {}  # leaf_board -> expand_value
@@ -157,12 +151,15 @@ class MCTS:
         # Backpropagate all leaves
         for path, leaf_board, leaf_player in leaves:
             if leaf_board in leaf_values:
-                value = leaf_values[leaf_board]
+                self.__backpropagate(path, leaf_values[leaf_board])
+            elif leaf_board not in self.prior_probability:
+                # Leaf not yet expanded (shouldn't normally happen)
+                value = self.__expand(leaf_board, leaf_player)
+                self.__backpropagate(path, value)
             else:
-                # Leaf was already expanded (e.g., from previous batch)
-                # Do a quick single-sample expansion
-                value = self.__expand(leaf_board, leaf_player) if leaf_board not in self.prior_probability else 0
-            self.__backpropagate(path, value)
+                # Duplicate leaf already expanded by earlier batch; search subtree
+                search_result = self.search(leaf_board, leaf_player)
+                self.__backpropagate(path, -search_result)
 
     def __backpropagate(self, path, init_value):
         """Backpropagate a value through the search path.
