@@ -28,10 +28,6 @@ class StubGame(Game):
         self.rows = 1
         self.columns = 3
 
-    @property
-    def action_space_size(self):
-        return self.rows * self.columns
-
     def next_player(self, player):
         return _ChessType.BLACK if player == _ChessType.WHITE else _ChessType.WHITE
 

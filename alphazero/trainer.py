@@ -14,8 +14,8 @@ import os
 import sys
 
 
-def setup_logging(logpath):
-    """Configure the root logger with file and console handlers."""
+def setup_logging(logpath, console=True):
+    """Configure the root logger with file and optional console handlers."""
     formatter = logging.Formatter("%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s")
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
@@ -27,9 +27,10 @@ def setup_logging(logpath):
     file_handler.setFormatter(formatter)
     root_logger.addHandler(file_handler)
 
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
-    root_logger.addHandler(console_handler)
+    if console:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        root_logger.addHandler(console_handler)
 
 
 def add_alphazero_args(parser):
