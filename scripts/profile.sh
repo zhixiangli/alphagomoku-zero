@@ -12,7 +12,7 @@
 # On macOS, py-spy needs elevated privileges. The script will automatically
 # prompt for sudo when needed, preserving the resolved Python/py-spy paths.
 #
-# Outputs (written to profiling_output/):
+# Outputs (written to profiling_output/<timestamp>/):
 #   flamegraph.svg   – Flame graph (open in a browser)
 #   speedscope.json  – Speedscope profile (https://www.speedscope.app)
 #   raw.txt          – Collapsed stack traces with sample counts
@@ -64,44 +64,48 @@ TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 OUTDIR="${OUTDIR}/${TIMESTAMP}"
 mkdir -p "${OUTDIR}"
 
+# Display trainer args safely (compatible with bash 3.2 empty arrays + set -u).
+if [[ ${#TRAINER_ARGS[@]} -gt 0 ]]; then
+    TRAINER_ARGS_DISPLAY="${TRAINER_ARGS[*]}"
+else
+    TRAINER_ARGS_DISPLAY="<none>"
+fi
+
+# Build the trainer command. Handle empty TRAINER_ARGS safely for bash 3.2.
+TRAINER_CMD=("${PYTHON}" -m gomoku.trainer)
+if [[ ${#TRAINER_ARGS[@]} -gt 0 ]]; then
+    TRAINER_CMD+=("${TRAINER_ARGS[@]}")
+fi
+
+# Profile with each output format. Each pass launches a fresh trainer process
+# so py-spy manages the child directly (avoids ptrace permission issues).
+FORMATS=("flamegraph:flamegraph.svg" "speedscope:speedscope.json" "raw:raw.txt")
+TOTAL=${#FORMATS[@]}
+STEP=0
+
 echo "=== py-spy profiling ==="
 echo "  Python:       ${PYTHON}"
 echo "  py-spy:       ${PYSPY}"
-echo "  Duration:     ${DURATION}s"
+echo "  Duration:     ${DURATION}s per format (${TOTAL} formats)"
 echo "  Sample rate:  ${RATE} Hz"
 echo "  Output dir:   ${OUTDIR}"
-echo "  Trainer args: ${TRAINER_ARGS[*]:-<none>}"
+echo "  Trainer args: ${TRAINER_ARGS_DISPLAY}"
 echo ""
 
-# 1. Flame graph (SVG) — best for finding the hottest code paths
-echo "[1/3] Recording flame graph (${DURATION}s) ..."
-${SUDO} "${PYSPY}" record \
-    --output "${OUTDIR}/flamegraph.svg" \
-    --format flamegraph \
-    --duration "${DURATION}" \
-    --rate "${RATE}" \
-    --subprocesses \
-    -- "${PYTHON}" -m gomoku.trainer "${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}"
+for entry in "${FORMATS[@]}"; do
+    FORMAT="${entry%%:*}"
+    FILENAME="${entry#*:}"
+    STEP=$((STEP + 1))
 
-# 2. Speedscope JSON — interactive timeline view at https://www.speedscope.app
-echo "[2/3] Recording speedscope profile (${DURATION}s) ..."
-${SUDO} "${PYSPY}" record \
-    --output "${OUTDIR}/speedscope.json" \
-    --format speedscope \
-    --duration "${DURATION}" \
-    --rate "${RATE}" \
-    --subprocesses \
-    -- "${PYTHON}" -m gomoku.trainer "${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}"
-
-# 3. Raw collapsed stacks — text summary sortable by frequency
-echo "[3/3] Recording raw stacks (${DURATION}s) ..."
-${SUDO} "${PYSPY}" record \
-    --output "${OUTDIR}/raw.txt" \
-    --format raw \
-    --duration "${DURATION}" \
-    --rate "${RATE}" \
-    --subprocesses \
-    -- "${PYTHON}" -m gomoku.trainer "${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}"
+    echo "[${STEP}/${TOTAL}] Recording ${FORMAT} → ${FILENAME} (${DURATION}s) ..."
+    ${SUDO} "${PYSPY}" record \
+        --output "${OUTDIR}/${FILENAME}" \
+        --format "${FORMAT}" \
+        --duration "${DURATION}" \
+        --rate "${RATE}" \
+        --subprocesses \
+        -- "${TRAINER_CMD[@]}"
+done
 
 echo ""
 echo "=== Done ==="
