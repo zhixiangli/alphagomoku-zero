@@ -45,7 +45,7 @@ def add_alphazero_args(parser):
 
     # Training
     parser.add_argument('-batch_size', type=int, default=1024)
-    parser.add_argument('-epochs', type=int, default=5)
+    parser.add_argument('-epochs', type=int, default=20)
     parser.add_argument('-lr', type=float, default=5e-3)
     parser.add_argument('-l2', type=float, default=1e-4)
 
@@ -59,7 +59,7 @@ def add_alphazero_args(parser):
     parser.add_argument('-history_num', type=int, default=2)
     parser.add_argument('-c_puct', type=float, default=1)
     parser.add_argument('-max_sample_pool_size', type=int, default=360000)
-    parser.add_argument('-temp_step', type=int, default=2)
+    parser.add_argument('-temp_step', type=int, default=1)
 
 
 def extract_alphazero_args(cli_args):

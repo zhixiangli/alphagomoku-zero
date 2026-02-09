@@ -21,11 +21,11 @@ class AlphaZeroConfig:
     c_puct: float = 1.0
 
     # Self-play parameters
-    temp_step: int = 2
+    temp_step: int = 1
 
     # Training parameters
     batch_size: int = 1024
-    epochs: int = 5
+    epochs: int = 20
     max_sample_pool_size: int = 360000
     persist_interval: int = 50
 
