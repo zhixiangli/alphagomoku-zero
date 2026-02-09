@@ -22,7 +22,6 @@ class TestTicTacToe(unittest.TestCase):
                 "rows": 3,
                 "columns": 3,
                 "n_in_row": 3,
-                "history_num": 2,
                 "conv_filters": 16,
                 "conv_kernel": (3, 3),
                 "residual_block_num": 2,

@@ -30,7 +30,6 @@ class AlphaZeroConfig:
     persist_interval: int = 50
 
     # Neural network architecture
-    history_num: int = 2
     lr: float = 5e-3
     l2: float = 1e-4
     conv_filters: int = 256

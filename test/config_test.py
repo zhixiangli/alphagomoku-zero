@@ -57,7 +57,6 @@ class TestGomokuConfig(unittest.TestCase):
         self.assertEqual(config.simulation_num, 500)
         self.assertEqual(config.c_puct, 1.0)
         self.assertEqual(config.batch_size, 1024)
-        self.assertEqual(config.history_num, 2)
 
 
 if __name__ == "__main__":
