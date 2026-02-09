@@ -97,11 +97,6 @@ class GomokuGame(Game):
     def structure_sgf(self, sgf):
         return [(s[0], self.dec_action(s)) for s in sgf.split(self.semicolon) if s]
 
-    def to_sgf(self, board):
-        return self.semicolon.join(
-            ["%c%s" % (board[i][j], self.hex_action(i * self.args.columns + j)) for i in range(self.args.rows) for j in
-             range(self.args.columns) if board[i][j] != ChessType.EMPTY])
-
     def hex_action(self, action):
         def dec_to_hex(dec):
             return format(dec, 'x')
@@ -150,22 +145,6 @@ class GomokuGame(Game):
             results.append(rotated)
             results.append(numpy.flip(rotated, axis=1))
         return results
-
-    def rot90(self, x, y):
-        return y, self.args.columns - x - 1
-
-    def fliplr(self, x, y):
-        return x, self.args.columns - y - 1
-
-    def augment_coordinate(self, x, y):
-        c = self.args.columns - 1
-        coords = numpy.array([
-            [y, c - x], [y, x],
-            [c - x, c - y], [c - x, y],
-            [c - y, x], [c - y, c - x],
-            [x, y], [x, c - y],
-        ])
-        return list(map(tuple, coords))
 
     def augment_policy(self, policy):
         original = policy.reshape(self.args.rows, self.args.columns)

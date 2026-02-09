@@ -30,19 +30,6 @@ class TestRL(unittest.TestCase):
         self.game = GomokuGame(self.args)
         self.nnet = AlphaZeroNNet(self.game, self.args)
 
-    def test_coordinate_transform(self):
-        """
-        . . o . o . .
-        . . x . x . .
-        o x . . . x o
-        . . . . . . .
-        o x . . . x o
-        . . x . x . .
-        . . o . o . .
-        """
-        expected = {(1, 2), (1, 4), (2, 1), (2, 5), (4, 1), (4, 5), (5, 2), (5, 4)}
-        self.assertEqual(expected, set(self.game.augment_coordinate(1, 2)))
-
     def test_augment_board(self):
         board = self.game.get_canonical_form("B[12];W[02]", ChessType.BLACK)
         augmented = self.game.augment_board(board)
