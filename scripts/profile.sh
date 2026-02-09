@@ -12,7 +12,7 @@
 # Outputs (written to profiling_output/):
 #   flamegraph.svg   – Flame graph (open in a browser)
 #   speedscope.json  – Speedscope profile (https://www.speedscope.app)
-#   top.txt          – py-spy top summary snapshot
+#   raw.txt          – Collapsed stack traces with sample counts
 #
 # All extra arguments are forwarded to the trainer, e.g.:
 #   sudo bash scripts/profile.sh -- -rows 9 -columns 9 -n_in_row 4
@@ -73,21 +73,19 @@ py-spy record \
     --subprocesses \
     -- "${PYTHON}" -m gomoku.trainer "${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}"
 
-# 3. Top-like snapshot — quick text summary of where time is spent
-echo "[3/3] Capturing top snapshot (${DURATION}s) ..."
-TOP_EXIT=0
-timeout "${DURATION}" py-spy top \
+# 3. Raw collapsed stacks — text summary sortable by frequency
+echo "[3/3] Recording raw stacks (${DURATION}s) ..."
+py-spy record \
+    --output "${OUTDIR}/raw.txt" \
+    --format raw \
+    --duration "${DURATION}" \
+    --rate "${RATE}" \
     --subprocesses \
-    -- "${PYTHON}" -m gomoku.trainer "${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}" \
-    > "${OUTDIR}/top.txt" 2>&1 || TOP_EXIT=$?
-# Exit code 124 means timeout expired (expected); anything else is a real error.
-if [[ ${TOP_EXIT} -ne 0 && ${TOP_EXIT} -ne 124 ]]; then
-    echo "Warning: py-spy top exited with code ${TOP_EXIT}" >&2
-fi
+    -- "${PYTHON}" -m gomoku.trainer "${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}"
 
 echo ""
 echo "=== Done ==="
 echo "Reports saved to ${OUTDIR}/"
 echo "  flamegraph.svg   -> open in browser to visualize hot paths"
 echo "  speedscope.json  -> upload to https://www.speedscope.app for interactive timeline"
-echo "  top.txt          -> quick text summary of most expensive functions"
+echo "  raw.txt          -> collapsed stacks with sample counts (grep/sort to find hotspots)"
