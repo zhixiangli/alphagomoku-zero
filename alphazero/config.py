@@ -26,7 +26,7 @@ class AlphaZeroConfig:
     # Training parameters
     batch_size: int = 1024
     epochs: int = 20
-    max_sample_pool_size: int = 360000
+    max_sample_pool_size: int = 50000
     persist_interval: int = 50
 
     # Neural network architecture
