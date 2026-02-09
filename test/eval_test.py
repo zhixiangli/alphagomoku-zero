@@ -16,9 +16,9 @@ from alphazero.nnet import NNet
 
 
 class _ChessType:
-    BLACK = 'B'
-    WHITE = 'W'
-    EMPTY = '.'
+    BLACK = "B"
+    WHITE = "W"
+    EMPTY = "."
 
 
 class StubGame(Game):
@@ -34,7 +34,7 @@ class StubGame(Game):
     def next_state(self, board, action, player):
         tmp = list(board)
         tmp[action] = player
-        return ''.join(tmp), self.next_player(player)
+        return "".join(tmp), self.next_player(player)
 
     def is_terminal_state(self, board, action, player):
         if action > 0 and board[action - 1] == board[action]:
@@ -62,7 +62,12 @@ class StubGame(Game):
     def get_canonical_form(self, board, player):
         if player == _ChessType.BLACK:
             return board
-        return "".join([self.next_player(c) if c in (_ChessType.BLACK, _ChessType.WHITE) else c for c in board])
+        return "".join(
+            [
+                self.next_player(c) if c in (_ChessType.BLACK, _ChessType.WHITE) else c
+                for c in board
+            ]
+        )
 
 
 class StubNNet(NNet):
@@ -110,13 +115,12 @@ class BiasedNNet(NNet):
 
 
 class TestEvaluator(unittest.TestCase):
-
     def _make_config(self, **overrides):
         base = {
-            'simulation_num': 50,
-            'c_puct': 5,
-            'rows': 1,
-            'columns': 3,
+            "simulation_num": 50,
+            "c_puct": 5,
+            "rows": 1,
+            "columns": 3,
         }
         base.update(overrides)
         return dotdict(base)
@@ -128,10 +132,12 @@ class TestEvaluator(unittest.TestCase):
         evaluator = Evaluator(game, StubNNet(), config, StubNNet(), config)
         results = evaluator.evaluate(num_games=4)
 
-        self.assertIn('agent1_wins', results)
-        self.assertIn('agent2_wins', results)
-        self.assertIn('draws', results)
-        self.assertEqual(results['agent1_wins'] + results['agent2_wins'] + results['draws'], 4)
+        self.assertIn("agent1_wins", results)
+        self.assertIn("agent2_wins", results)
+        self.assertIn("draws", results)
+        self.assertEqual(
+            results["agent1_wins"] + results["agent2_wins"] + results["draws"], 4
+        )
 
     def test_evaluate_all_games_finish(self):
         """All requested games finish and are counted."""
@@ -140,7 +146,7 @@ class TestEvaluator(unittest.TestCase):
         evaluator = Evaluator(game, StubNNet(), config, StubNNet(), config)
         results = evaluator.evaluate(num_games=10)
 
-        total = results['agent1_wins'] + results['agent2_wins'] + results['draws']
+        total = results["agent1_wins"] + results["agent2_wins"] + results["draws"]
         self.assertEqual(total, 10)
 
     def test_biased_agent_is_stronger(self):
@@ -150,11 +156,13 @@ class TestEvaluator(unittest.TestCase):
         weak_config = self._make_config(simulation_num=5)
         biased_nnet = BiasedNNet()
         uniform_nnet = StubNNet()
-        evaluator = Evaluator(game, biased_nnet, strong_config, uniform_nnet, weak_config)
+        evaluator = Evaluator(
+            game, biased_nnet, strong_config, uniform_nnet, weak_config
+        )
         results = evaluator.evaluate(num_games=20)
 
         # The biased agent (agent1) with more simulations should win at least as often
-        self.assertGreaterEqual(results['agent1_wins'], results['agent2_wins'])
+        self.assertGreaterEqual(results["agent1_wins"], results["agent2_wins"])
 
     def test_single_game(self):
         """A single game produces a valid result."""
@@ -163,7 +171,7 @@ class TestEvaluator(unittest.TestCase):
         evaluator = Evaluator(game, StubNNet(), config, StubNNet(), config)
         results = evaluator.evaluate(num_games=1)
 
-        total = results['agent1_wins'] + results['agent2_wins'] + results['draws']
+        total = results["agent1_wins"] + results["agent2_wins"] + results["draws"]
         self.assertEqual(total, 1)
 
     def test_alternating_colours(self):
@@ -182,14 +190,13 @@ class TestEvaluator(unittest.TestCase):
 
 
 class TestModuleCreateEvaluator(unittest.TestCase):
-
     def test_create_evaluator(self):
         """create_evaluator wires game, two nnets, and evaluator correctly."""
         module = AlphaZeroModule()
         module.register(StubGame, StubNNet)
 
-        config1 = dotdict({'rows': 1, 'columns': 3, 'simulation_num': 50, 'c_puct': 5})
-        config2 = dotdict({'rows': 1, 'columns': 3, 'simulation_num': 30, 'c_puct': 3})
+        config1 = dotdict({"rows": 1, "columns": 3, "simulation_num": 50, "c_puct": 5})
+        config2 = dotdict({"rows": 1, "columns": 3, "simulation_num": 30, "c_puct": 3})
         evaluator = module.create_evaluator(StubGame, config1, config2)
 
         self.assertIsInstance(evaluator, Evaluator)
@@ -200,5 +207,5 @@ class TestModuleCreateEvaluator(unittest.TestCase):
         self.assertEqual(evaluator.config2, config2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -14,15 +14,16 @@ from alphazero.rl import RL
 
 
 class ChessType:
-    BLACK = 'B'
-    WHITE = 'W'
-    EMPTY = '.'
+    BLACK = "B"
+    WHITE = "W"
+    EMPTY = "."
 
 
 class MockGame(Game):
     """
     1 * 3 board, 2 continuous color will be win.
     """
+
     rows = 1
     columns = 3
 
@@ -36,12 +37,14 @@ class MockGame(Game):
         assert player != ChessType.EMPTY
         tmp = list(board)
         tmp[action] = player
-        return ''.join(tmp), self.next_player(player)
+        return "".join(tmp), self.next_player(player)
 
     def is_terminal_state(self, board, action, player):
         assert player != ChessType.EMPTY
         assert board[action] == player
-        if (action > 0 and board[action - 1] == board[action]) or (action == 0 and board[action + 1] == board[action]):
+        if (action > 0 and board[action - 1] == board[action]) or (
+            action == 0 and board[action + 1] == board[action]
+        ):
             return player
         if all(ch != ChessType.EMPTY for ch in board):
             return Game.DRAW
@@ -59,7 +62,12 @@ class MockGame(Game):
     def get_canonical_form(self, board, player):
         if player == ChessType.BLACK:
             return board
-        return "".join([self.next_player(c) if c in (ChessType.BLACK, ChessType.WHITE) else c for c in board])
+        return "".join(
+            [
+                self.next_player(c) if c in (ChessType.BLACK, ChessType.WHITE) else c
+                for c in board
+            ]
+        )
 
 
 class MockNNet(NNet):
@@ -71,20 +79,21 @@ class MockNNet(NNet):
 
 
 class TestAlphaZero(unittest.TestCase):
-
     def setUp(self):
         self.game = MockGame()
         self.nnet = MockNNet()
-        self.args = dotdict({
-            'simulation_num': 100,
-            'c_puct': 5,
-            'save_checkpoint_path': '',
-            'rows': 1,
-            'columns': 3,
-            'max_sample_pool_size': 100000,
-            'sample_pool_file': '',
-            'temp_step': 5,
-        })
+        self.args = dotdict(
+            {
+                "simulation_num": 100,
+                "c_puct": 5,
+                "save_checkpoint_path": "",
+                "rows": 1,
+                "columns": 3,
+                "max_sample_pool_size": 100000,
+                "sample_pool_file": "",
+                "temp_step": 5,
+            }
+        )
         self.mcts = MCTS(self.nnet, self.game, self.args)
         self.rl = RL(self.nnet, self.game, self.args)
 
@@ -107,5 +116,5 @@ class TestAlphaZero(unittest.TestCase):
         print("play_against_itself", samples)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

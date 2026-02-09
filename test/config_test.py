@@ -8,7 +8,6 @@ from gomoku.config import GomokuConfig
 
 
 class TestAlphaZeroConfig(unittest.TestCase):
-
     def test_default_values(self):
         config = AlphaZeroConfig(rows=10, columns=10)
         self.assertEqual(config.rows, 10)
@@ -27,9 +26,7 @@ class TestAlphaZeroConfig(unittest.TestCase):
         self.assertEqual(config.action_space_size, 9)
 
     def test_custom_values(self):
-        config = AlphaZeroConfig(
-            rows=8, columns=8, simulation_num=100, c_puct=2.0
-        )
+        config = AlphaZeroConfig(rows=8, columns=8, simulation_num=100, c_puct=2.0)
         self.assertEqual(config.rows, 8)
         self.assertEqual(config.columns, 8)
         self.assertEqual(config.simulation_num, 100)
@@ -37,7 +34,6 @@ class TestAlphaZeroConfig(unittest.TestCase):
 
 
 class TestGomokuConfig(unittest.TestCase):
-
     def test_inherits_alphazero_config(self):
         config = GomokuConfig()
         self.assertIsInstance(config, AlphaZeroConfig)
@@ -64,5 +60,5 @@ class TestGomokuConfig(unittest.TestCase):
         self.assertEqual(config.history_num, 2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

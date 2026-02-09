@@ -17,10 +17,11 @@ from gomoku.game import GomokuGame
 
 # --------------- lightweight mocks ---------------
 
+
 class _ChessType:
-    BLACK = 'B'
-    WHITE = 'W'
-    EMPTY = '.'
+    BLACK = "B"
+    WHITE = "W"
+    EMPTY = "."
 
 
 class StubGame(Game):
@@ -36,7 +37,7 @@ class StubGame(Game):
     def next_state(self, board, action, player):
         tmp = list(board)
         tmp[action] = player
-        return ''.join(tmp), self.next_player(player)
+        return "".join(tmp), self.next_player(player)
 
     def is_terminal_state(self, board, action, player):
         if action > 0 and board[action - 1] == board[action]:
@@ -59,7 +60,12 @@ class StubGame(Game):
     def get_canonical_form(self, board, player):
         if player == _ChessType.BLACK:
             return board
-        return "".join([self.next_player(c) if c in (_ChessType.BLACK, _ChessType.WHITE) else c for c in board])
+        return "".join(
+            [
+                self.next_player(c) if c in (_ChessType.BLACK, _ChessType.WHITE) else c
+                for c in board
+            ]
+        )
 
 
 class StubNNet(NNet):
@@ -82,8 +88,8 @@ class StubNNet(NNet):
 
 # --------------- tests ---------------
 
-class TestAlphaZeroModule(unittest.TestCase):
 
+class TestAlphaZeroModule(unittest.TestCase):
     def test_default_nnet_binding(self):
         """Unregistered games fall back to AlphaZeroNNet."""
         module = AlphaZeroModule()
@@ -105,12 +111,14 @@ class TestAlphaZeroModule(unittest.TestCase):
         module = AlphaZeroModule()
         module.register(StubGame, StubNNet)
 
-        args = dotdict({
-            'rows': 1,
-            'columns': 3,
-            'max_sample_pool_size': 100,
-            'sample_pool_file': '',
-        })
+        args = dotdict(
+            {
+                "rows": 1,
+                "columns": 3,
+                "max_sample_pool_size": 100,
+                "sample_pool_file": "",
+            }
+        )
         trainer = module.create_trainer(StubGame, args)
 
         self.assertIsInstance(trainer, RL)
@@ -119,6 +127,7 @@ class TestAlphaZeroModule(unittest.TestCase):
 
     def test_multiple_registrations(self):
         """Each game class gets its own binding."""
+
         class AnotherGame(StubGame):
             pass
 
@@ -134,7 +143,6 @@ class TestAlphaZeroModule(unittest.TestCase):
 
 
 class TestGomokuModuleIntegration(unittest.TestCase):
-
     def test_configure_module_registers_gomoku(self):
         """configure_module binds GomokuGame → AlphaZeroNNet."""
         module = AlphaZeroModule()
@@ -155,31 +163,35 @@ class TestGomokuModuleIntegration(unittest.TestCase):
     def test_decoupling_game_does_not_import_nnet(self):
         """GomokuGame module has no dependency on nnet."""
         import gomoku.game as game_module
+
         with open(game_module.__file__) as f:
             source = f.read()
-        self.assertNotIn('GomokuNNet', source)
-        self.assertNotIn('nnet', source)
+        self.assertNotIn("GomokuNNet", source)
+        self.assertNotIn("nnet", source)
 
     def test_decoupling_config_does_not_import_nnet_or_game(self):
         """GomokuConfig module has no dependency on game or nnet."""
         import gomoku.config as config_module
+
         with open(config_module.__file__) as f:
             source = f.read()
-        self.assertNotIn('GomokuNNet', source)
-        self.assertNotIn('GomokuGame', source)
+        self.assertNotIn("GomokuNNet", source)
+        self.assertNotIn("GomokuGame", source)
 
     def test_gomoku_nnet_deleted(self):
         """gomoku/nnet.py should no longer exist."""
         import importlib
+
         with self.assertRaises(ModuleNotFoundError):
-            importlib.import_module('gomoku.nnet')
+            importlib.import_module("gomoku.nnet")
 
     def test_tictactoe_nnet_deleted(self):
         """tictactoe/nnet.py should no longer exist."""
         import importlib
+
         with self.assertRaises(ModuleNotFoundError):
-            importlib.import_module('tictactoe.nnet')
+            importlib.import_module("tictactoe.nnet")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
