@@ -78,29 +78,21 @@ class TestGomoku(unittest.TestCase):
         # Channel 1 (opponent/BLACK): B[20] -> (2,0), B[11] -> (1,1)
         canonical = self.game.get_canonical_form('B[20];W[21];B[11]', ChessType.WHITE)
         self.assertTrue(numpy.array_equal(canonical,
-                                          numpy.array([[[0, 0, 0, ],
-                                                        [0, 0, 0, ],
-                                                        [0, 1, 0, ]],
-
-                                                       [[0, 0, 0, ],
-                                                        [0, 1, 0, ],
-                                                        [1, 0, 0, ]]])))
+                                          numpy.array([[[0, 0], [0, 0], [0, 0]],
+                                                       [[0, 0], [0, 1], [0, 0]],
+                                                       [[0, 1], [1, 0], [0, 0]]])))
         # Board 'B[20];W[21];B[11]' with canonical form for BLACK player
         # Channel 0 (current/BLACK player): B[20] -> (2,0), B[11] -> (1,1)
         # Channel 1 (opponent/WHITE): W[21] -> (2,1)
         canonical = self.game.get_canonical_form('B[20];W[21];B[11]', ChessType.BLACK)
         self.assertTrue(numpy.array_equal(canonical,
-                                          numpy.array([[[0, 0, 0, ],
-                                                        [0, 1, 0, ],
-                                                        [1, 0, 0, ]],
-
-                                                       [[0, 0, 0, ],
-                                                        [0, 0, 0, ],
-                                                        [0, 1, 0, ]]])))
+                                          numpy.array([[[0, 0], [0, 0], [0, 0]],
+                                                       [[0, 0], [1, 0], [0, 0]],
+                                                       [[1, 0], [0, 1], [0, 0]]])))
 
     def test_get_canonical_form_empty(self):
         self.assertTrue(numpy.array_equal(self.game.get_canonical_form('', ChessType.BLACK),
-                                          numpy.zeros((2, 3, 3))))
+                                          numpy.zeros((3, 3, 2))))
 
     def test_value_head_shape(self):
         """Value head must Flatten before Dense(256) per AlphaZero paper."""

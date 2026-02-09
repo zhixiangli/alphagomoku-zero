@@ -75,16 +75,16 @@ class GomokuGame(Game):
         Channel 0: current player's stones
         Channel 1: opponent's stones
         """
-        feature = numpy.zeros((2, self.args.rows, self.args.columns))
+        feature = numpy.zeros((self.args.rows, self.args.columns, 2))
         opponent = self.next_player(player)
         if board:
             for stone in board.split(self.semicolon):
                 if stone:
                     (x, y) = self.dec_action(stone)
                     if stone[0] == player:
-                        feature[0][x][y] = 1
+                        feature[x][y][0] = 1
                     elif stone[0] == opponent:
-                        feature[1][x][y] = 1
+                        feature[x][y][1] = 1
         return feature
 
     def to_board(self, sgf):
@@ -146,9 +146,9 @@ class GomokuGame(Game):
         """Apply D4 symmetry group transformations to a board tensor."""
         results = []
         for k in range(1, 5):
-            rotated = numpy.rot90(board, -k, axes=(1, 2))
+            rotated = numpy.rot90(board, -k, axes=(0, 1))
             results.append(rotated)
-            results.append(numpy.flip(rotated, axis=2))
+            results.append(numpy.flip(rotated, axis=1))
         return results
 
     def rot90(self, x, y):
