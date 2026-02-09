@@ -98,7 +98,7 @@ class AlphaZeroNNet(NNet):
     def predict(self, board):
         states = board[numpy.newaxis, ...]
         policy, value = self.model.predict(states)
-        return policy[0], value[0]
+        return policy[0], value[0][0]
 
     def save_checkpoint(self, filename):
         self.model.save_weights("%s.%s.weights.h5" % (filename, int(time.time() * 1000)))
