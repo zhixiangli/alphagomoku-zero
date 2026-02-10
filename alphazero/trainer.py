@@ -57,6 +57,7 @@ def add_alphazero_args(
     parser.add_argument("-save_checkpoint_path", default=save_checkpoint_path)
     parser.add_argument("-sample_pool_file", default=sample_pool_file)
     parser.add_argument("-persist_interval", type=int, default=_DEFAULTS["persist_interval"])
+    parser.add_argument("-train_interval", type=int, default=_DEFAULTS["train_interval"])
 
     # Training
     parser.add_argument("-batch_size", type=int, default=_DEFAULTS["batch_size"])
@@ -90,6 +91,7 @@ def extract_alphazero_args(cli_args):
         epochs=cli_args.epochs,
         max_sample_pool_size=cli_args.max_sample_pool_size,
         persist_interval=cli_args.persist_interval,
+        train_interval=cli_args.train_interval,
         lr=cli_args.lr,
         l2=cli_args.l2,
         conv_filters=cli_args.conv_filters,

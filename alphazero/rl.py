@@ -77,6 +77,8 @@ class RL:
             logging.info("current sample pool size: %d", len(self.sample_pool))
             if self.args.batch_size > len(self.sample_pool):
                 continue
+            if (i + 1) % self.args.train_interval != 0:
+                continue
             self.nnet.train(random.sample(self.sample_pool, self.args.batch_size))
             if (i + 1) % self.args.persist_interval == 0:
                 persist_sample_pool_thread = threading.Thread(
