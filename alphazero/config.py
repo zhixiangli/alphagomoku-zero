@@ -16,7 +16,7 @@ class AlphaZeroConfig:
 
     # Number of MCTS simulations to run per move. Higher values give stronger
     # play but take longer. Each simulation traverses the game tree once.
-    simulation_num: int = 500
+    simulation_num: int = 1000
 
     # Exploration constant in the PUCT formula used during MCTS tree search.
     # Controls the trade-off between exploitation (low values) and exploration
@@ -37,7 +37,7 @@ class AlphaZeroConfig:
 
     # Maximum number of (board, policy, value) samples kept in the replay
     # buffer. Oldest samples are evicted when the pool exceeds this size.
-    max_sample_pool_size: int = 50000
+    max_sample_pool_size: int = 300000
 
     # Save model checkpoint and persist the sample pool every this many
     # self-play iterations.

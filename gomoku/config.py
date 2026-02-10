@@ -22,5 +22,5 @@ class GomokuConfig(AlphaZeroConfig):
     columns: int = 15
 
     # Game-specific persistence paths
-    save_checkpoint_path: str = "./data/gomoku/model"
-    sample_pool_file: str = "./data/gomoku/samples.pkl"
+    save_checkpoint_path: str = "./gomoku/data/model"
+    sample_pool_file: str = "./gomoku/data/samples.pkl"

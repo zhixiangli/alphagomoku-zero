@@ -12,7 +12,7 @@ class TestAlphaZeroConfig(unittest.TestCase):
         config = AlphaZeroConfig(rows=10, columns=10)
         self.assertEqual(config.rows, 10)
         self.assertEqual(config.columns, 10)
-        self.assertEqual(config.simulation_num, 500)
+        self.assertEqual(config.simulation_num, 1000)
         self.assertEqual(config.c_puct, 1.0)
         self.assertEqual(config.temp_step, 2)
         self.assertEqual(config.batch_size, 1024)
@@ -48,8 +48,8 @@ class TestGomokuConfig(unittest.TestCase):
 
     def test_game_specific_paths(self):
         config = GomokuConfig()
-        self.assertEqual(config.save_checkpoint_path, "./data/gomoku/model")
-        self.assertEqual(config.sample_pool_file, "./data/gomoku/samples.pkl")
+        self.assertEqual(config.save_checkpoint_path, "./gomoku/data/model")
+        self.assertEqual(config.sample_pool_file, "./gomoku/data/samples.pkl")
 
     def test_custom_gomoku_values(self):
         config = GomokuConfig(rows=3, columns=3, n_in_row=2)
@@ -60,7 +60,7 @@ class TestGomokuConfig(unittest.TestCase):
 
     def test_has_common_config_fields(self):
         config = GomokuConfig()
-        self.assertEqual(config.simulation_num, 500)
+        self.assertEqual(config.simulation_num, 1000)
         self.assertEqual(config.c_puct, 1.0)
         self.assertEqual(config.batch_size, 1024)
 
