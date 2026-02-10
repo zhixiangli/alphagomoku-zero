@@ -132,8 +132,9 @@ class TestAlphaZeroNNet(unittest.TestCase):
 
         # Train with minimal data
         rows, cols = self.args.rows, self.args.columns
+        action_space = rows * cols
         data = [
-            (numpy.zeros((rows, cols, 2)), numpy.ones(rows * cols) / (rows * cols), 1.0)
+            (numpy.zeros((rows, cols, 2)), numpy.ones(action_space) / action_space, 1.0)
             for _ in range(8)
         ]
         self.nnet.train(data)

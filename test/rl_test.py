@@ -1,13 +1,17 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
+import os
+import tempfile
 import unittest
+from collections import deque
 
 import numpy
 from dotdict import dotdict
 
-from gomoku.game import GomokuGame, ChessType
 from alphazero.nnet import AlphaZeroNNet
+from alphazero.rl import RL
+from gomoku.game import GomokuGame, ChessType
 
 
 class TestRL(unittest.TestCase):
@@ -73,9 +77,6 @@ class TestRL(unittest.TestCase):
 class TestRLSamplePool(unittest.TestCase):
     def test_persist_and_read_sample_pool(self):
         """persist_sample_pool and read_sample_pool round-trip correctly."""
-        import os
-        import tempfile
-
         tmpdir = tempfile.mkdtemp()
         sample_file = os.path.join(tmpdir, "samples.pkl")
         args = dotdict(
@@ -95,12 +96,8 @@ class TestRLSamplePool(unittest.TestCase):
         )
         game = GomokuGame(args)
         nnet = AlphaZeroNNet(game, args)
-        from alphazero.rl import RL
-
         rl = RL(nnet, game, args)
         # Add some samples
-        from collections import deque
-
         test_samples = deque([(numpy.zeros((3, 3, 2)), numpy.ones(9) / 9, 1.0)])
         rl.persist_sample_pool(test_samples)
         self.assertTrue(os.path.exists(sample_file))
@@ -128,13 +125,11 @@ class TestRLSamplePool(unittest.TestCase):
                 "max_sample_pool_size": 100,
                 "l2": 1e-4,
                 "lr": 1e-3,
-                "sample_pool_file": "/tmp/nonexistent_pool.pkl",
+                "sample_pool_file": os.path.join(tempfile.gettempdir(), "nonexistent_pool.pkl"),
             }
         )
         game = GomokuGame(args)
         nnet = AlphaZeroNNet(game, args)
-        from alphazero.rl import RL
-
         rl = RL(nnet, game, args)
         result = rl.read_sample_pool()
         self.assertIsNone(result)
@@ -153,13 +148,11 @@ class TestRLSamplePool(unittest.TestCase):
                 "max_sample_pool_size": 5,
                 "l2": 1e-4,
                 "lr": 1e-3,
-                "sample_pool_file": "/tmp/nonexistent_pool_2.pkl",
+                "sample_pool_file": os.path.join(tempfile.gettempdir(), "nonexistent_pool_2.pkl"),
             }
         )
         game = GomokuGame(args)
         nnet = AlphaZeroNNet(game, args)
-        from alphazero.rl import RL
-
         rl = RL(nnet, game, args)
         self.assertEqual(rl.sample_pool.maxlen, 5)
         # Add more than maxlen samples
