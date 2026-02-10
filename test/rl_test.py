@@ -2,6 +2,7 @@
 #  -*- coding: utf-8 -*-
 
 import os
+import pickle
 import tempfile
 import unittest
 from collections import deque
@@ -10,8 +11,9 @@ import numpy
 from dotdict import dotdict
 
 from alphazero.nnet import AlphaZeroNNet
-from alphazero.rl import RL
+from alphazero.rl import RL, _play_game, _self_play_worker
 from gomoku.game import GomokuGame, ChessType
+from gomoku.config import GomokuConfig
 
 
 class TestRL(unittest.TestCase):
@@ -72,6 +74,75 @@ class TestRL(unittest.TestCase):
     def test_no_reverse_color_method(self):
         """reverse_color is no longer needed with canonical form."""
         self.assertFalse(hasattr(self.game, "reverse_color"))
+
+
+class TestPlayGame(unittest.TestCase):
+    """Tests for the standalone _play_game function."""
+
+    def setUp(self):
+        self.config = GomokuConfig(
+            rows=3,
+            columns=3,
+            n_in_row=2,
+            simulation_num=10,
+            conv_filters=16,
+            residual_block_num=1,
+        )
+        self.game = GomokuGame(self.config)
+        self.nnet = AlphaZeroNNet(self.game, self.config)
+
+    def test_returns_valid_samples(self):
+        """_play_game returns a list of (board, policy, value) tuples."""
+        samples = _play_game(self.nnet, self.game, self.config)
+        self.assertIsInstance(samples, list)
+        self.assertGreater(len(samples), 0)
+        for board, policy, value in samples:
+            self.assertEqual(board.shape, (3, 3, 2))
+            self.assertEqual(len(policy), 9)
+            self.assertIn(value, [-1, 0, 1])
+
+    def test_play_against_itself_delegates(self):
+        """RL.play_against_itself delegates to _play_game."""
+        rl = RL(self.nnet, self.game, self.config)
+        samples = rl.play_against_itself()
+        self.assertIsInstance(samples, list)
+        self.assertGreater(len(samples), 0)
+
+
+class TestSelfPlayWorker(unittest.TestCase):
+    """Tests for the _self_play_worker function used by ProcessPoolExecutor."""
+
+    def setUp(self):
+        self.config = GomokuConfig(
+            rows=3,
+            columns=3,
+            n_in_row=2,
+            simulation_num=10,
+            conv_filters=16,
+            residual_block_num=1,
+        )
+        self.game = GomokuGame(self.config)
+        self.nnet = AlphaZeroNNet(self.game, self.config)
+
+    def test_worker_returns_valid_samples(self):
+        """_self_play_worker reconstructs nnet and plays a game."""
+        state_dict = self.nnet.model.state_dict()
+        samples = _self_play_worker(self.game, AlphaZeroNNet, self.config, state_dict)
+        self.assertIsInstance(samples, list)
+        self.assertGreater(len(samples), 0)
+        for board, policy, value in samples:
+            self.assertEqual(board.shape, (3, 3, 2))
+            self.assertEqual(len(policy), 9)
+            self.assertIn(value, [-1, 0, 1])
+
+    def test_parallel_components_are_picklable(self):
+        """Components needed for ProcessPoolExecutor must be picklable."""
+        state_dict = self.nnet.model.state_dict()
+        # All arguments to _self_play_worker must be picklable
+        pickle.dumps(self.game)
+        pickle.dumps(AlphaZeroNNet)
+        pickle.dumps(self.config)
+        pickle.dumps(state_dict)
 
 
 class TestRLSamplePool(unittest.TestCase):

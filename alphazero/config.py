@@ -43,9 +43,10 @@ class AlphaZeroConfig:
     # self-play iterations.
     persist_interval: int = 50
 
-    # Train the neural network every this many self-play iterations,
-    # provided enough samples have been collected (>= batch_size).
-    train_interval: int = 20
+    # Number of self-play games to run (in parallel) before each training
+    # step.  Training is triggered once all games finish, provided enough
+    # samples have been collected (>= batch_size).
+    games_per_train: int = 20
 
     # Learning rate for the Adam optimizer used to train the neural network.
     lr: float = 5e-3

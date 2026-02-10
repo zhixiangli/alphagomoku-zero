@@ -62,7 +62,7 @@ def add_alphazero_args(
         "-persist_interval", type=int, default=_DEFAULTS["persist_interval"]
     )
     parser.add_argument(
-        "-train_interval", type=int, default=_DEFAULTS["train_interval"]
+        "-games_per_train", type=int, default=_DEFAULTS["games_per_train"]
     )
 
     # Training
@@ -103,7 +103,7 @@ def extract_alphazero_args(cli_args):
         epochs=cli_args.epochs,
         max_sample_pool_size=cli_args.max_sample_pool_size,
         persist_interval=cli_args.persist_interval,
-        train_interval=cli_args.train_interval,
+        games_per_train=cli_args.games_per_train,
         lr=cli_args.lr,
         l2=cli_args.l2,
         conv_filters=cli_args.conv_filters,
