@@ -88,8 +88,9 @@ class Evaluator:
 
         player_mcts = {first_player: mcts_first, second_player: mcts_second}
         player = first_player
+        max_moves = self.game.rows * self.game.columns
 
-        for _ in itertools.count():
+        for move_num in itertools.count():
             mcts = player_mcts[player]
             actions, counts = mcts.simulate(board, player)
 
@@ -106,4 +107,8 @@ class Evaluator:
                 else:
                     return 0
 
+            assert move_num < max_moves, (
+                "Game exceeded maximum possible moves (%d). "
+                "Terminal state detection may be broken." % max_moves
+            )
             board, player = next_board, next_player

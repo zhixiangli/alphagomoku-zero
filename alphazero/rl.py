@@ -37,6 +37,7 @@ class RL:
         board, player = self.game.get_initial_state()
         canonical_boards, players, policies = [], [], []
         mcts = MCTS(self.nnet, self.game, self.args)
+        max_moves = self.args.rows * self.args.columns
         for i in itertools.count():
             actions, counts = mcts.simulate(board, player)
             pi = counts / numpy.sum(counts)
@@ -61,6 +62,10 @@ class RL:
                     [self.game.compute_reward(winner, p) for p in players]
                 )
                 return [i for i in zip(canonical_boards, policies, values)]
+            assert i < max_moves, (
+                "Game exceeded maximum possible moves (%d). "
+                "Terminal state detection may be broken." % max_moves
+            )
             board, player = next_board, next_player
 
     def start(self):

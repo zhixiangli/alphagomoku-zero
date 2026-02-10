@@ -42,7 +42,7 @@ class StubGame(Game):
         if action + 1 < len(board) and board[action + 1] == board[action]:
             return player
         if all(ch != _ChessType.EMPTY for ch in board):
-            return _ChessType.EMPTY
+            return Game.DRAW
         return None
 
     def get_initial_state(self):
@@ -53,11 +53,6 @@ class StubGame(Game):
 
     def log_status(self, board, counts, actions):
         pass
-
-    def compute_reward(self, winner, player):
-        if winner == _ChessType.EMPTY:
-            return 0
-        return 1 if player == winner else -1
 
     def get_canonical_form(self, board, player):
         if player == _ChessType.BLACK:
