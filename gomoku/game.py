@@ -59,19 +59,19 @@ class GomokuGame(Game):
 
         # Check win: count consecutive stones through the action position
         ax, ay = divmod(action, cols)
-        pos_in = player_positions.__contains__
+        has_stone = player_positions.__contains__
 
         for dx, dy in self.directions:
             count = 1
             # Positive direction
             x, y = ax + dx, ay + dy
-            while 0 <= x < rows and 0 <= y < cols and pos_in((x, y)):
+            while 0 <= x < rows and 0 <= y < cols and has_stone((x, y)):
                 count += 1
                 x += dx
                 y += dy
             # Negative direction
             x, y = ax - dx, ay - dy
-            while 0 <= x < rows and 0 <= y < cols and pos_in((x, y)):
+            while 0 <= x < rows and 0 <= y < cols and has_stone((x, y)):
                 count += 1
                 x -= dx
                 y -= dy
@@ -124,12 +124,12 @@ class GomokuGame(Game):
                 ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
             )
             for stone in board.split(";"):
-                c = stone[0]
+                color = stone[0]
                 x = int(stone[2], 16)
                 y = int(stone[3], 16)
-                if c == player:
+                if color == player:
                     feature[x, y, 0] = 1
-                elif c == opponent:
+                elif color == opponent:
                     feature[x, y, 1] = 1
         return feature
 
