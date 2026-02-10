@@ -18,52 +18,84 @@ class GomokuGame(Game):
     def __init__(self, args):
         self.args = args
         self.semicolon = ";"
-        self.directions = [[1, 1], [1, -1], [0, 1], [1, 0]]
+        self.directions = ((1, 1), (1, -1), (0, 1), (1, 0))
+        self._total = args.rows * args.columns
+        self._cols = args.columns
+        self._rows = args.rows
+        self._n = args.n_in_row
 
     def next_player(self, player):
         assert player != ChessType.EMPTY
         return ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
 
     def next_state(self, board, action, player):
-        stone = player + self.hex_action(action)
-        return board + self.semicolon + stone if board else stone, self.next_player(
-            player
+        cols = self._cols
+        stone = "%s[%x%x]" % (player, action // cols, action % cols)
+        next_p = (
+            ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
         )
+        if board:
+            return board + ";" + stone, next_p
+        return stone, next_p
 
     def is_terminal_state(self, board, action, player):
-        stones = board.split(self.semicolon)
-        if not stones:
+        if not board:
             return None
-        board_array = numpy.full(
-            (self.args.rows, self.args.columns), ChessType.EMPTY, dtype="U1"
-        )
-        for stone in stones:
-            (x, y) = self.dec_action(stone)
-            if 0 <= x < self.args.rows and 0 <= y < self.args.columns:
-                board_array[x, y] = stone[0]
-        if any(
-            self.is_win(action, player, direction, board_array)
-            for direction in self.directions
-        ):
-            return player
-        if (
-            numpy.sum(board_array != ChessType.EMPTY)
-            == self.args.rows * self.args.columns
-        ):
+
+        rows = self._rows
+        cols = self._cols
+        n = self._n
+
+        # Build set of current player's positions and count valid stones
+        player_positions = set()
+        total_stones = 0
+        for stone in board.split(";"):
+            x = int(stone[2], 16)
+            y = int(stone[3], 16)
+            if 0 <= x < rows and 0 <= y < cols:
+                total_stones += 1
+                if stone[0] == player:
+                    player_positions.add((x, y))
+
+        # Check win: count consecutive stones through the action position
+        ax, ay = divmod(action, cols)
+        pos_in = player_positions.__contains__
+
+        for dx, dy in self.directions:
+            count = 1
+            # Positive direction
+            x, y = ax + dx, ay + dy
+            while 0 <= x < rows and 0 <= y < cols and pos_in((x, y)):
+                count += 1
+                x += dx
+                y += dy
+            # Negative direction
+            x, y = ax - dx, ay - dy
+            while 0 <= x < rows and 0 <= y < cols and pos_in((x, y)):
+                count += 1
+                x -= dx
+                y -= dy
+            if count >= n:
+                return player
+
+        # Check draw
+        if total_stones == self._total:
             return Game.DRAW
+
         return None
 
     def get_initial_state(self):
         return "", ChessType.BLACK
 
     def available_actions(self, board):
-        total = self.args.rows * self.args.columns
-        occupied = numpy.zeros(total, dtype=bool)
-        if board:
-            for stone in board.split(self.semicolon):
-                x, y = self.dec_action(stone)
-                occupied[x * self.args.columns + y] = True
-        return numpy.flatnonzero(~occupied).tolist()
+        total = self._total
+        if not board:
+            return list(range(total))
+        cols = self._cols
+        occupied = set()
+        for stone in board.split(";"):
+            occupied.add(int(stone[2], 16) * cols + int(stone[3], 16))
+        return [i for i in range(total) if i not in occupied]
 
     def log_status(self, board, counts, actions):
         logging.info("board status: %s", board)
@@ -72,9 +104,9 @@ class GomokuGame(Game):
         for row in board:
             logging.info("".join(row))
 
-        visited = numpy.zeros(self.args.rows * self.args.columns)
+        visited = numpy.zeros(self._total)
         visited[actions] = counts
-        visited = visited.reshape(self.args.rows, self.args.columns)
+        visited = visited.reshape(self._rows, self._cols)
         for row in visited:
             logging.info(",".join(["%3d" % r for r in row]))
 
@@ -84,61 +116,42 @@ class GomokuGame(Game):
         Channel 0: current player's stones
         Channel 1: opponent's stones
         """
-        feature = numpy.zeros((self.args.rows, self.args.columns, 2))
-        opponent = self.next_player(player)
+        rows = self._rows
+        cols = self._cols
+        feature = numpy.zeros((rows, cols, 2))
         if board:
-            for stone in board.split(self.semicolon):
-                if stone:
-                    (x, y) = self.dec_action(stone)
-                    if stone[0] == player:
-                        feature[x][y][0] = 1
-                    elif stone[0] == opponent:
-                        feature[x][y][1] = 1
+            opponent = (
+                ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
+            )
+            for stone in board.split(";"):
+                c = stone[0]
+                x = int(stone[2], 16)
+                y = int(stone[3], 16)
+                if c == player:
+                    feature[x, y, 0] = 1
+                elif c == opponent:
+                    feature[x, y, 1] = 1
         return feature
 
     def to_board(self, sgf):
-        board = numpy.full(
-            (self.args.rows, self.args.columns), ChessType.EMPTY, dtype="U1"
-        )
+        board = numpy.full((self._rows, self._cols), ChessType.EMPTY, dtype="U1")
         for stone in self.structure_sgf(sgf):
             color, (x, y) = stone
             board[x, y] = color
         return board
 
     def structure_sgf(self, sgf):
-        return [(s[0], self.dec_action(s)) for s in sgf.split(self.semicolon) if s]
+        return [
+            (s[0], (int(s[2], 16), int(s[3], 16)))
+            for s in sgf.split(";")
+            if s
+        ]
 
     def hex_action(self, action):
-        def dec_to_hex(dec):
-            return format(dec, "x")
-
-        return "[%s%s]" % (
-            dec_to_hex(action // self.args.columns),
-            dec_to_hex(action % self.args.columns),
-        )
+        return "[%x%x]" % (action // self._cols, action % self._cols)
 
     def dec_action(self, stone):
-        def hex_to_dec(hex):
-            return int(hex, 16)
-
-        return hex_to_dec(stone[2]), hex_to_dec(stone[3])
-
-    def is_win(self, action, player, direction, board_array):
-        dx, dy = direction
-        x, y = action // self.args.columns, action % self.args.columns
-        n = self.args.n_in_row
-        offsets = numpy.arange(-(n - 1), n)
-        xs = x + offsets * dx
-        ys = y + offsets * dy
-        valid = (xs >= 0) & (xs < self.args.rows) & (ys >= 0) & (ys < self.args.columns)
-        xs_safe = numpy.where(valid, xs, 0)
-        ys_safe = numpy.where(valid, ys, 0)
-        matches = valid & (board_array[xs_safe, ys_safe] == player)
-        if numpy.sum(matches) < n:
-            return False
-        kernel = numpy.ones(n, dtype=int)
-        conv = numpy.convolve(matches.astype(int), kernel, mode="valid")
-        return bool(numpy.any(conv >= n))
+        return int(stone[2], 16), int(stone[3], 16)
 
     # Data augmentation methods (merged from GomokuRL)
 
