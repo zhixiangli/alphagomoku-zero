@@ -28,14 +28,14 @@ _worker_args = None
 def _init_self_play_worker(game_class, nnet_class, model_state_dict, args):
     """Initialise a worker process with its own game and neural network."""
     global _worker_game, _worker_nnet, _worker_args
-    numpy.random.seed()  # reseed from OS entropy after fork
+    numpy.random.seed()  # reseed from OS entropy in each worker process
     _worker_args = args
     _worker_game = game_class(args)
     _worker_nnet = nnet_class(_worker_game, args)
     _worker_nnet.model.load_state_dict(model_state_dict)
 
 
-def _self_play_game(_=None):
+def _self_play_game(game_index=None):
     """Run one self-play game inside a worker process."""
     return play_one_game(_worker_game, _worker_nnet, _worker_args)
 
