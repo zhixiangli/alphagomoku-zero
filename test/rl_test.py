@@ -125,7 +125,9 @@ class TestRLSamplePool(unittest.TestCase):
                 "max_sample_pool_size": 100,
                 "l2": 1e-4,
                 "lr": 1e-3,
-                "sample_pool_file": os.path.join(tempfile.gettempdir(), "nonexistent_pool.pkl"),
+                "sample_pool_file": os.path.join(
+                    tempfile.gettempdir(), "nonexistent_pool.pkl"
+                ),
             }
         )
         game = GomokuGame(args)
@@ -148,7 +150,9 @@ class TestRLSamplePool(unittest.TestCase):
                 "max_sample_pool_size": 5,
                 "l2": 1e-4,
                 "lr": 1e-3,
-                "sample_pool_file": os.path.join(tempfile.gettempdir(), "nonexistent_pool_2.pkl"),
+                "sample_pool_file": os.path.join(
+                    tempfile.gettempdir(), "nonexistent_pool_2.pkl"
+                ),
             }
         )
         game = GomokuGame(args)

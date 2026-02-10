@@ -155,9 +155,7 @@ class AlphaZeroNNet(NNet):
         target_policies = torch.from_numpy(numpy.array(policies)).float()
         target_values = torch.from_numpy(numpy.array(values)).float().unsqueeze(-1)
 
-        dataset = torch.utils.data.TensorDataset(
-            states, target_policies, target_values
-        )
+        dataset = torch.utils.data.TensorDataset(states, target_policies, target_values)
         loader = torch.utils.data.DataLoader(
             dataset, batch_size=self.args.batch_size, shuffle=True
         )

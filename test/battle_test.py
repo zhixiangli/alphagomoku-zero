@@ -50,13 +50,15 @@ class _MockNNet3x3(NNet):
 
 class TestGomokuBattleAgent(unittest.TestCase):
     def setUp(self):
-        self.args = dotdict({
-            "rows": 3,
-            "columns": 3,
-            "n_in_row": 2,
-            "simulation_num": 20,
-            "c_puct": 5,
-        })
+        self.args = dotdict(
+            {
+                "rows": 3,
+                "columns": 3,
+                "n_in_row": 2,
+                "simulation_num": 20,
+                "c_puct": 5,
+            }
+        )
         self.game = GomokuGame(self.args)
         self.nnet = _MockNNet3x3()
         self.agent = GomokuBattleAgent(self.nnet, self.game, self.args)
@@ -91,6 +93,7 @@ class TestGomokuBattleAgent(unittest.TestCase):
     def test_start_processes_next_black(self, mock_print, mock_stdin):
         """BattleAgent.start reads JSON commands and responds."""
         import json
+
         cmd = json.dumps({"command": "NEXT_BLACK", "chessboard": ""})
         # Return the command line then empty to break the loop
         mock_stdin.readline.side_effect = [cmd, KeyboardInterrupt]

@@ -68,8 +68,9 @@ class TestResidualBlock(unittest.TestCase):
 
 class TestAlphaZeroModel(unittest.TestCase):
     def test_output_shapes(self):
-        model = _AlphaZeroModel(rows=5, columns=5, conv_filters=16,
-                                conv_kernel=(3, 3), residual_block_num=2)
+        model = _AlphaZeroModel(
+            rows=5, columns=5, conv_filters=16, conv_kernel=(3, 3), residual_block_num=2
+        )
         x = torch.randn(2, 2, 5, 5)
         policy, value = model(x)
         self.assertEqual(policy.shape, (2, 25))  # batch=2, action_space=25
@@ -77,8 +78,9 @@ class TestAlphaZeroModel(unittest.TestCase):
 
     def test_value_head_range(self):
         """Value head uses tanh, so output should be in [-1, 1]."""
-        model = _AlphaZeroModel(rows=3, columns=3, conv_filters=8,
-                                conv_kernel=(3, 3), residual_block_num=1)
+        model = _AlphaZeroModel(
+            rows=3, columns=3, conv_filters=8, conv_kernel=(3, 3), residual_block_num=1
+        )
         x = torch.randn(10, 2, 3, 3)
         _, value = model(x)
         self.assertTrue(torch.all(value >= -1))
@@ -86,8 +88,9 @@ class TestAlphaZeroModel(unittest.TestCase):
 
     def test_policy_head_is_logits(self):
         """Policy head returns raw logits (no softmax applied)."""
-        model = _AlphaZeroModel(rows=3, columns=3, conv_filters=8,
-                                conv_kernel=(3, 3), residual_block_num=1)
+        model = _AlphaZeroModel(
+            rows=3, columns=3, conv_filters=8, conv_kernel=(3, 3), residual_block_num=1
+        )
         x = torch.randn(1, 2, 3, 3)
         policy, _ = model(x)
         # Logits can be negative or > 1

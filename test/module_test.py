@@ -186,6 +186,5 @@ class TestGomokuModuleIntegration(unittest.TestCase):
             importlib.import_module("gomoku.nnet")
 
 
-
 if __name__ == "__main__":
     unittest.main()

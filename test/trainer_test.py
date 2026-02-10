@@ -166,6 +166,5 @@ class TestGomokuTrainerMain(unittest.TestCase):
         self.assertEqual(config.sample_pool_file, "./data/gomoku/samples.pkl")
 
 
-
 if __name__ == "__main__":
     unittest.main()
