@@ -259,17 +259,15 @@ class TestParallelSelfPlay(unittest.TestCase):
 class TestWorkerLogpath(unittest.TestCase):
     """Tests for per-worker log path derivation."""
 
-    def test_worker_logpath_includes_pid(self):
-        """_worker_logpath embeds the current PID into the filename."""
-        result = _worker_logpath("./data/train.log")
-        expected = f"./data/train.worker-{os.getpid()}.log"
-        self.assertEqual(result, expected)
+    def test_worker_logpath_includes_id(self):
+        """_worker_logpath embeds the worker id into the filename."""
+        result = _worker_logpath("./data/train.log", 0)
+        self.assertEqual(result, "./data/train.worker-0.log")
 
     def test_worker_logpath_no_extension(self):
         """_worker_logpath handles paths without an extension."""
-        result = _worker_logpath("./data/train")
-        expected = f"./data/train.worker-{os.getpid()}"
-        self.assertEqual(result, expected)
+        result = _worker_logpath("./data/train", 3)
+        self.assertEqual(result, "./data/train.worker-3")
 
 
 class TestWorkerLogging(unittest.TestCase):
@@ -305,19 +303,23 @@ class TestWorkerLogging(unittest.TestCase):
 
         num_games = 2
         mp_context = multiprocessing.get_context("spawn")
+        worker_counter = mp_context.Value("i", 0)
         with ProcessPoolExecutor(
             max_workers=2,
             mp_context=mp_context,
             initializer=_init_self_play_worker,
-            initargs=(GomokuGame, AlphaZeroNNet, model_state, args),
+            initargs=(GomokuGame, AlphaZeroNNet, model_state, args, worker_counter),
         ) as executor:
             list(executor.map(_self_play_game, range(num_games)))
 
-        # At least one worker log file should have been created
+        # Worker log files should use sequential numbering
         worker_logs = [
             f for f in os.listdir(tmpdir) if f.startswith("test.worker-")
         ]
         self.assertGreater(len(worker_logs), 0)
+        # Verify sequential naming (worker-0, worker-1, ...)
+        expected_names = {f"test.worker-{i}.log" for i in range(len(worker_logs))}
+        self.assertEqual(set(worker_logs), expected_names)
         # Each worker log should contain data (the "winner" log line)
         for wlog in worker_logs:
             wpath = os.path.join(tmpdir, wlog)
