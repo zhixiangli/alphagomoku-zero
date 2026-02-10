@@ -60,7 +60,9 @@ def _self_play_worker(game, nnet_class, args, model_state_dict):
     """Worker function for parallel self-play in a subprocess.
 
     Reconstructs the neural network from the serialized state dict
-    and plays one complete self-play game.
+    and plays one complete self-play game.  The model state dict is
+    pickled once per task submission; for very large networks consider
+    shared-memory approaches if serialization becomes a bottleneck.
     """
     nnet = nnet_class(game, args)
     nnet.model.load_state_dict(model_state_dict)
