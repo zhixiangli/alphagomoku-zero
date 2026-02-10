@@ -116,11 +116,11 @@ class TestRunTraining(unittest.TestCase):
 class TestSetupLogging(unittest.TestCase):
     @patch("alphazero.trainer.logging")
     def test_adds_handlers(self, mock_logging):
-        """setup_logging adds file and console handlers."""
+        """setup_logging adds file handler only by default."""
         mock_root = MagicMock()
         mock_logging.getLogger.return_value = mock_root
         setup_logging("/tmp/test.log")
-        self.assertEqual(mock_root.addHandler.call_count, 2)
+        self.assertEqual(mock_root.addHandler.call_count, 1)
         mock_root.setLevel.assert_called_once()
 
     def test_creates_parent_directory(self):
