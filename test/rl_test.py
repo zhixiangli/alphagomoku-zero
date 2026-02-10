@@ -1,16 +1,23 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
+import multiprocessing
 import os
 import tempfile
 import unittest
 from collections import deque
+from concurrent.futures import ProcessPoolExecutor
 
 import numpy
 from dotdict import dotdict
 
 from alphazero.nnet import AlphaZeroNNet
-from alphazero.rl import RL
+from alphazero.rl import (
+    RL,
+    _init_self_play_worker,
+    _self_play_game,
+    play_one_game,
+)
 from gomoku.game import GomokuGame, ChessType
 
 
@@ -163,6 +170,88 @@ class TestRLSamplePool(unittest.TestCase):
         for i in range(10):
             rl.sample_pool.append(("board", "policy", i))
         self.assertEqual(len(rl.sample_pool), 5)
+
+
+class TestPlayOneGame(unittest.TestCase):
+    """Tests for the standalone play_one_game function."""
+
+    def test_returns_samples(self):
+        """play_one_game returns a non-empty list of (board, policy, value) tuples."""
+        args = dotdict(
+            {
+                "rows": 3,
+                "columns": 3,
+                "n_in_row": 2,
+                "conv_filters": 16,
+                "conv_kernel": (3, 3),
+                "residual_block_num": 2,
+                "simulation_num": 10,
+                "c_puct": 1.0,
+                "temp_step": 2,
+                "save_checkpoint_path": "./tmp",
+                "max_sample_pool_size": 100,
+                "l2": 1e-4,
+                "lr": 1e-3,
+                "sample_pool_file": os.path.join(
+                    tempfile.gettempdir(), "play_one_game_test.pkl"
+                ),
+            }
+        )
+        game = GomokuGame(args)
+        nnet = AlphaZeroNNet(game, args)
+        samples = play_one_game(game, nnet, args)
+        self.assertGreater(len(samples), 0)
+        for board, policy, value in samples:
+            self.assertEqual(board.shape, (3, 3, 2))
+            self.assertEqual(policy.shape, (9,))
+            self.assertIn(value, [-1, 0, 1])
+
+
+class TestParallelSelfPlay(unittest.TestCase):
+    """Tests for parallel self-play using ProcessPoolExecutor."""
+
+    def test_parallel_games_produce_samples(self):
+        """Multiple games run in parallel via ProcessPoolExecutor."""
+        args = dotdict(
+            {
+                "rows": 3,
+                "columns": 3,
+                "n_in_row": 2,
+                "conv_filters": 16,
+                "conv_kernel": (3, 3),
+                "residual_block_num": 2,
+                "simulation_num": 10,
+                "c_puct": 1.0,
+                "temp_step": 2,
+                "save_checkpoint_path": "./tmp",
+                "max_sample_pool_size": 100,
+                "l2": 1e-4,
+                "lr": 1e-3,
+                "sample_pool_file": os.path.join(
+                    tempfile.gettempdir(), "parallel_test.pkl"
+                ),
+            }
+        )
+        game = GomokuGame(args)
+        nnet = AlphaZeroNNet(game, args)
+        model_state = nnet.model.state_dict()
+
+        num_games = 3
+        mp_context = multiprocessing.get_context("spawn")
+        with ProcessPoolExecutor(
+            max_workers=2,
+            mp_context=mp_context,
+            initializer=_init_self_play_worker,
+            initargs=(GomokuGame, AlphaZeroNNet, model_state, args),
+        ) as executor:
+            results = list(executor.map(_self_play_game, range(num_games)))
+
+        self.assertEqual(len(results), num_games)
+        for samples in results:
+            self.assertGreater(len(samples), 0)
+            for board, policy, value in samples:
+                self.assertEqual(board.shape, (3, 3, 2))
+                self.assertEqual(policy.shape, (9,))
 
 
 if __name__ == "__main__":
