@@ -1,13 +1,12 @@
 # alphazero-board-games
 
-A general-purpose [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero) implementation for board games using Monte Carlo Tree Search (MCTS) and deep residual neural networks. Currently supports **Gomoku** (Five in a Row) and **Tic-Tac-Toe**, with an extensible architecture for adding new games.
+A general-purpose [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero) implementation for board games using Monte Carlo Tree Search (MCTS) and deep residual neural networks. Currently supports **Gomoku** (Five in a Row), with an extensible architecture for adding new games.
 
 ## Project Structure
 
 ```
 alphazero/          Core AlphaZero algorithm (game interface, MCTS, neural network, self-play, evaluation)
 gomoku/             Gomoku game implementation (15×15 board, 5-in-a-row)
-tictactoe/          Tic-Tac-Toe game implementation (3×3 board, 3-in-a-row)
 battle.py           Gomoku battle & evaluation entry point (stdin/stdout JSON protocol)
 test/               Unit tests
 ```
@@ -28,7 +27,6 @@ test/               Unit tests
 ### Supported Games
 
 - **Gomoku** (`gomoku/`) — Configurable board size (default 15×15) and win condition (default 5-in-a-row). Includes D4 symmetry data augmentation (8 transformations).
-- **Tic-Tac-Toe** (`tictactoe/`) — A 3×3 specialization of Gomoku (3-in-a-row). Extends the Gomoku game and network classes.
 
 ## Prerequisites
 
@@ -69,27 +67,21 @@ Customize board size and hyperparameters:
 uv run python -m gomoku.trainer -rows 9 -columns 9 -n_in_row 4
 ```
 
-### Tic-Tac-Toe
-
-```sh
-uv run python tictactoe/trainer.py
-```
-
 ### Key Training Arguments
 
 | Argument | Default | Description |
 |----------|---------|-------------|
-| `-rows` | 15 (Gomoku) / 3 (TTT) | Board rows |
-| `-columns` | 15 (Gomoku) / 3 (TTT) | Board columns |
-| `-n_in_row` | 5 (Gomoku) / 3 (TTT) | Consecutive stones needed to win |
-| `-simulation_num` | 500 (Gomoku) / 200 (TTT) | MCTS simulations per move |
-| `-batch_size` | 1024 (Gomoku) / 512 (TTT) | Training batch size |
+| `-rows` | 15 | Board rows |
+| `-columns` | 15 | Board columns |
+| `-n_in_row` | 5 | Consecutive stones needed to win |
+| `-simulation_num` | 500 | MCTS simulations per move |
+| `-batch_size` | 1024 | Training batch size |
 | `-lr` | 5e-3 | Learning rate |
 | `-epochs` | 20 | Training epochs per iteration |
 | `-c_puct` | 1.0 | MCTS exploration constant |
 | `-save_checkpoint_path` | `./data/<game>/model` | Path to save model checkpoints |
 | `-residual_block_num` | 2 | Number of residual blocks in the network |
-| `-conv_filters` | 256 (Gomoku) / 64 (TTT) | Convolutional filter count |
+| `-conv_filters` | 256 | Convolutional filter count |
 
 ## Battle Mode (Gomoku)
 
