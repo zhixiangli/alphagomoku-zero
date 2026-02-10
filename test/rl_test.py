@@ -16,6 +16,7 @@ from alphazero.rl import (
     RL,
     _init_self_play_worker,
     _self_play_game,
+    _worker_logpath,
     play_one_game,
 )
 from gomoku.game import GomokuGame, ChessType
@@ -252,6 +253,78 @@ class TestParallelSelfPlay(unittest.TestCase):
             for board, policy, value in samples:
                 self.assertEqual(board.shape, (3, 3, 2))
                 self.assertEqual(policy.shape, (9,))
+
+
+class TestWorkerLogpath(unittest.TestCase):
+    """Tests for per-worker log path derivation."""
+
+    def test_worker_logpath_includes_pid(self):
+        """_worker_logpath embeds the current PID into the filename."""
+        result = _worker_logpath("./data/train.log")
+        expected = f"./data/train.worker-{os.getpid()}.log"
+        self.assertEqual(result, expected)
+
+    def test_worker_logpath_no_extension(self):
+        """_worker_logpath handles paths without an extension."""
+        result = _worker_logpath("./data/train")
+        expected = f"./data/train.worker-{os.getpid()}"
+        self.assertEqual(result, expected)
+
+
+class TestWorkerLogging(unittest.TestCase):
+    """Tests for logging setup inside worker processes."""
+
+    def test_parallel_games_create_worker_logs(self):
+        """Worker processes should create per-process log files."""
+        tmpdir = tempfile.mkdtemp()
+        logpath = os.path.join(tmpdir, "test.log")
+        args = dotdict(
+            {
+                "rows": 3,
+                "columns": 3,
+                "n_in_row": 2,
+                "conv_filters": 16,
+                "conv_kernel": (3, 3),
+                "residual_block_num": 2,
+                "simulation_num": 10,
+                "c_puct": 1.0,
+                "temp_step": 2,
+                "save_checkpoint_path": "./tmp",
+                "max_sample_pool_size": 100,
+                "l2": 1e-4,
+                "lr": 1e-3,
+                "sample_pool_file": os.path.join(tmpdir, "samples.pkl"),
+                "logpath": logpath,
+            }
+        )
+        game = GomokuGame(args)
+        nnet = AlphaZeroNNet(game, args)
+        model_state = nnet.model.state_dict()
+
+        num_games = 2
+        mp_context = multiprocessing.get_context("spawn")
+        with ProcessPoolExecutor(
+            max_workers=2,
+            mp_context=mp_context,
+            initializer=_init_self_play_worker,
+            initargs=(GomokuGame, AlphaZeroNNet, model_state, args),
+        ) as executor:
+            list(executor.map(_self_play_game, range(num_games)))
+
+        # At least one worker log file should have been created
+        worker_logs = [
+            f for f in os.listdir(tmpdir) if f.startswith("test.worker-")
+        ]
+        self.assertGreater(len(worker_logs), 0)
+        # Each worker log should contain data (the "winner" log line)
+        for wlog in worker_logs:
+            wpath = os.path.join(tmpdir, wlog)
+            with open(wpath) as f:
+                content = f.read()
+            self.assertIn("winner", content)
+
+        import shutil
+        shutil.rmtree(tmpdir)
 
 
 if __name__ == "__main__":

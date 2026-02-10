@@ -69,6 +69,10 @@ class AlphaZeroConfig:
     # File path for persisting the sample replay pool to disk (pickle format).
     sample_pool_file: str = "./data/samples.pkl"
 
+    # File path for the main training log.  Worker processes derive their own
+    # log paths from this (e.g. ``alphazero.worker-<pid>.log``).
+    logpath: str = "./data/alphazero.log"
+
     @property
     def action_space_size(self) -> int:
         """Size of the action space for grid-based board games."""

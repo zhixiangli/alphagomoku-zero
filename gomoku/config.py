@@ -24,3 +24,4 @@ class GomokuConfig(AlphaZeroConfig):
     # Game-specific persistence paths
     save_checkpoint_path: str = "./gomoku/data/model"
     sample_pool_file: str = "./gomoku/data/samples.pkl"
+    logpath: str = "./gomoku/data/gomoku.log"

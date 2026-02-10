@@ -16,6 +16,7 @@ from concurrent.futures import ProcessPoolExecutor
 import numpy
 
 from alphazero.mcts import MCTS
+from alphazero.trainer import setup_logging
 
 # ---------------------------------------------------------------------------
 # Worker-process globals (set once per worker by _init_self_play_worker)
@@ -25,10 +26,22 @@ _worker_nnet = None
 _worker_args = None
 
 
+def _worker_logpath(logpath):
+    """Derive a per-worker log file path from the main log path."""
+    base, ext = os.path.splitext(logpath)
+    return f"{base}.worker-{os.getpid()}{ext}"
+
+
 def _init_self_play_worker(game_class, nnet_class, model_state_dict, args):
     """Initialise a worker process with its own game and neural network."""
     global _worker_game, _worker_nnet, _worker_args
     numpy.random.seed()  # reseed from OS entropy in each worker process
+    try:
+        logpath = args.logpath
+    except (AttributeError, KeyError):
+        logpath = None
+    if logpath:
+        setup_logging(_worker_logpath(logpath))
     _worker_args = args
     _worker_game = game_class(args)
     _worker_nnet = nnet_class(_worker_game, args)
