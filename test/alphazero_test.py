@@ -2,6 +2,7 @@
 #  -*- coding: utf-8 -*-
 
 
+import logging
 import unittest
 
 import numpy
@@ -100,12 +101,12 @@ class TestAlphaZero(unittest.TestCase):
     def test_mcts(self):
         board, player = self.game.get_initial_state()
         self.mcts.simulate(board, player)
-        print("visit_count", self.mcts.visit_count)
-        print("mean_action_value", self.mcts.mean_action_value)
-        print("prior_probability", self.mcts.prior_probability)
-        print("terminal_state", self.mcts.terminal_state)
-        print("total_visit_count", self.mcts.total_visit_count)
-        print("available_actions", self.mcts.available_actions)
+        logging.debug("visit_count %s", self.mcts.visit_count)
+        logging.debug("mean_action_value %s", self.mcts.mean_action_value)
+        logging.debug("prior_probability %s", self.mcts.prior_probability)
+        logging.debug("terminal_state %s", self.mcts.terminal_state)
+        logging.debug("total_visit_count %s", self.mcts.total_visit_count)
+        logging.debug("available_actions %s", self.mcts.available_actions)
 
         counts = self.mcts.visit_count[board]
         self.assertTrue(counts[0] < counts[1])
@@ -113,7 +114,7 @@ class TestAlphaZero(unittest.TestCase):
 
     def test_play_against_itself(self):
         samples = self.rl.play_against_itself()
-        print("play_against_itself", samples)
+        logging.debug("play_against_itself %s", samples)
 
 
 if __name__ == "__main__":

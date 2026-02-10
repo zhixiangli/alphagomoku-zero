@@ -20,7 +20,7 @@ from alphazero.config import AlphaZeroConfig
 _DEFAULTS = {f.name: f.default for f in fields(AlphaZeroConfig) if f.default is not MISSING}
 
 
-def setup_logging(logpath, console=True):
+def setup_logging(logpath, console=False):
     """Configure the root logger with file and optional console handlers."""
     formatter = logging.Formatter(
         "%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s"

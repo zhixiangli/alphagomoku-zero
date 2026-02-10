@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     cli_args = parser.parse_args()
 
-    setup_logging(cli_args.logpath, console=not cli_args.is_battle)
+    setup_logging(cli_args.logpath)
 
     # Build typed config from CLI arguments
     config = GomokuConfig(
