@@ -31,9 +31,7 @@ class GomokuGame(Game):
     def next_state(self, board, action, player):
         cols = self._cols
         stone = "%s[%x%x]" % (player, action // cols, action % cols)
-        next_p = (
-            ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
-        )
+        next_p = ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
         if board:
             return board + ";" + stone, next_p
         return stone, next_p
@@ -120,9 +118,7 @@ class GomokuGame(Game):
         cols = self._cols
         feature = numpy.zeros((rows, cols, 2))
         if board:
-            opponent = (
-                ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
-            )
+            opponent = ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
             for stone in board.split(";"):
                 color = stone[0]
                 x = int(stone[2], 16)
@@ -141,11 +137,7 @@ class GomokuGame(Game):
         return board
 
     def structure_sgf(self, sgf):
-        return [
-            (s[0], (int(s[2], 16), int(s[3], 16)))
-            for s in sgf.split(";")
-            if s
-        ]
+        return [(s[0], (int(s[2], 16), int(s[3], 16))) for s in sgf.split(";") if s]
 
     def hex_action(self, action):
         return "[%x%x]" % (action // self._cols, action % self._cols)

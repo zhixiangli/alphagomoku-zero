@@ -7,7 +7,6 @@ from alphazero.config import AlphaZeroConfig
 from gomoku.config import GomokuConfig
 
 
-
 class TestAlphaZeroConfig(unittest.TestCase):
     def test_default_values(self):
         config = AlphaZeroConfig(rows=10, columns=10)
@@ -64,7 +63,6 @@ class TestGomokuConfig(unittest.TestCase):
         self.assertEqual(config.simulation_num, 500)
         self.assertEqual(config.c_puct, 1.0)
         self.assertEqual(config.batch_size, 1024)
-
 
 
 if __name__ == "__main__":

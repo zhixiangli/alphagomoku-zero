@@ -17,7 +17,9 @@ from dataclasses import MISSING, fields
 from alphazero.config import AlphaZeroConfig
 
 # Build a mapping of field name -> default value from the config dataclass
-_DEFAULTS = {f.name: f.default for f in fields(AlphaZeroConfig) if f.default is not MISSING}
+_DEFAULTS = {
+    f.name: f.default for f in fields(AlphaZeroConfig) if f.default is not MISSING
+}
 
 
 def setup_logging(logpath, console=False):
@@ -56,8 +58,12 @@ def add_alphazero_args(
     # Persistence
     parser.add_argument("-save_checkpoint_path", default=save_checkpoint_path)
     parser.add_argument("-sample_pool_file", default=sample_pool_file)
-    parser.add_argument("-persist_interval", type=int, default=_DEFAULTS["persist_interval"])
-    parser.add_argument("-train_interval", type=int, default=_DEFAULTS["train_interval"])
+    parser.add_argument(
+        "-persist_interval", type=int, default=_DEFAULTS["persist_interval"]
+    )
+    parser.add_argument(
+        "-train_interval", type=int, default=_DEFAULTS["train_interval"]
+    )
 
     # Training
     parser.add_argument("-batch_size", type=int, default=_DEFAULTS["batch_size"])
@@ -68,12 +74,18 @@ def add_alphazero_args(
     # Neural network architecture
     parser.add_argument("-conv_filters", type=int, default=_DEFAULTS["conv_filters"])
     parser.add_argument("-conv_kernel", default=_DEFAULTS["conv_kernel"])
-    parser.add_argument("-residual_block_num", type=int, default=_DEFAULTS["residual_block_num"])
+    parser.add_argument(
+        "-residual_block_num", type=int, default=_DEFAULTS["residual_block_num"]
+    )
 
     # MCTS / self-play
-    parser.add_argument("-simulation_num", type=int, default=_DEFAULTS["simulation_num"])
+    parser.add_argument(
+        "-simulation_num", type=int, default=_DEFAULTS["simulation_num"]
+    )
     parser.add_argument("-c_puct", type=float, default=_DEFAULTS["c_puct"])
-    parser.add_argument("-max_sample_pool_size", type=int, default=_DEFAULTS["max_sample_pool_size"])
+    parser.add_argument(
+        "-max_sample_pool_size", type=int, default=_DEFAULTS["max_sample_pool_size"]
+    )
     parser.add_argument("-temp_step", type=int, default=_DEFAULTS["temp_step"])
 
 
