@@ -98,7 +98,7 @@ class RL:
         return play_one_game(self.game, self.nnet, self.args)
 
     def start(self):
-        num_workers = os.cpu_count() or 1
+        num_workers = max((os.cpu_count() or 1) - 1, 1)
         for round_num in itertools.count():
             logging.info(
                 "round %d: playing %d self-play games with %d workers",
