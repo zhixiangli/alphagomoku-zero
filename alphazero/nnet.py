@@ -80,12 +80,12 @@ class _AlphaZeroModel(nn.Module):
 
         # Policy head (returns logits; caller applies softmax)
         p = torch.relu(self.policy_bn(self.policy_conv(h)))
-        p = p.view(p.size(0), -1)
+        p = torch.flatten(p, 1)
         p = self.policy_fc(p)
 
         # Value head
         v = torch.relu(self.value_bn(self.value_conv(h)))
-        v = v.view(v.size(0), -1)
+        v = torch.flatten(v, 1)
         v = torch.relu(self.value_fc1(v))
         v = torch.tanh(self.value_fc2(v))
 
@@ -101,6 +101,12 @@ class AlphaZeroNNet(NNet):
     - Value head (scalar tanh)
 
     Uses game.get_canonical_form() directly for board representation.
+
+    Performance optimizations:
+    - channels_last memory format for faster CPU convolutions
+    - torch.jit.optimize_for_inference fuses BatchNorm into Conv layers
+    - Pre-allocated input buffer eliminates per-call tensor allocation
+    - torch.from_numpy for zero-copy tensor creation
     """
 
     def __init__(self, game, args):
@@ -112,23 +118,42 @@ class AlphaZeroNNet(NNet):
             args.conv_filters,
             args.conv_kernel,
             args.residual_block_num,
-        )
+        ).to(memory_format=torch.channels_last)
         self.optimizer = optim.Adam(
             self.model.parameters(),
             lr=args.lr,
             weight_decay=args.l2,
         )
+        self._predict_buf = torch.empty(
+            1, 2, args.rows, args.columns, memory_format=torch.channels_last
+        )
+        self._frozen_model = None
+
+    def _build_frozen_model(self):
+        """Build a JIT-optimized model for fast inference.
+
+        Traces the model and applies torch.jit.optimize_for_inference which
+        fuses BatchNorm into Conv layers and other graph-level optimizations.
+        Must be rebuilt after training or loading new weights.
+        """
+        self.model.eval()
+        example = torch.randn(1, 2, self.args.rows, self.args.columns).to(
+            memory_format=torch.channels_last
+        )
+        traced = torch.jit.trace(self.model, example)
+        self._frozen_model = torch.jit.optimize_for_inference(traced)
 
     def train(self, data):
         boards, policies, values = zip(*data)
-        # Input boards are NHWC; convert to NCHW for PyTorch
-        states = torch.tensor(
-            numpy.array(boards), dtype=torch.float32
-        ).permute(0, 3, 1, 2)
-        target_policies = torch.tensor(numpy.array(policies), dtype=torch.float32)
-        target_values = torch.tensor(
-            numpy.array(values), dtype=torch.float32
-        ).unsqueeze(-1)
+        # Input boards are NHWC; convert to NCHW channels_last for PyTorch
+        states = (
+            torch.from_numpy(numpy.array(boards))
+            .float()
+            .permute(0, 3, 1, 2)
+            .to(memory_format=torch.channels_last)
+        )
+        target_policies = torch.from_numpy(numpy.array(policies)).float()
+        target_values = torch.from_numpy(numpy.array(values)).float().unsqueeze(-1)
 
         dataset = torch.utils.data.TensorDataset(
             states, target_policies, target_values
@@ -140,7 +165,7 @@ class AlphaZeroNNet(NNet):
         self.model.train()
         for _ in range(self.args.epochs):
             for batch_states, batch_policies, batch_values in loader:
-                self.optimizer.zero_grad()
+                self.optimizer.zero_grad(set_to_none=True)
                 policy_logits, pred_values = self.model(batch_states)
                 policy_loss = torch.nn.functional.cross_entropy(
                     policy_logits, batch_policies
@@ -149,17 +174,14 @@ class AlphaZeroNNet(NNet):
                 loss = policy_loss + value_loss
                 loss.backward()
                 self.optimizer.step()
+        self._frozen_model = None
 
     def predict(self, board):
-        # Input board is HWC; convert to 1CHW for PyTorch
-        state = (
-            torch.tensor(board, dtype=torch.float32)
-            .permute(2, 0, 1)
-            .unsqueeze(0)
-        )
-        self.model.eval()
+        if self._frozen_model is None:
+            self._build_frozen_model()
+        self._predict_buf[0] = torch.from_numpy(board).permute(2, 0, 1)
         with torch.inference_mode():
-            policy_logits, value = self.model(state)
+            policy_logits, value = self._frozen_model(self._predict_buf)
             policy = torch.softmax(policy_logits, dim=1)
         return policy[0].numpy(), value[0][0].numpy()
 
@@ -181,6 +203,7 @@ class AlphaZeroNNet(NNet):
             checkpoint = torch.load(latest_file, weights_only=True)
             self.model.load_state_dict(checkpoint["model"])
             self.optimizer.load_state_dict(checkpoint["optimizer"])
+            self._frozen_model = None
             logging.info("load checkpoint from %s", latest_file)
         except (RuntimeError, KeyError) as e:
             logging.error("failed to load checkpoint from %s: %s", latest_file, e)
