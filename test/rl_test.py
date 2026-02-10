@@ -3,6 +3,7 @@
 
 import multiprocessing
 import os
+import shutil
 import tempfile
 import unittest
 from collections import deque
@@ -277,6 +278,7 @@ class TestWorkerLogging(unittest.TestCase):
     def test_parallel_games_create_worker_logs(self):
         """Worker processes should create per-process log files."""
         tmpdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmpdir)
         logpath = os.path.join(tmpdir, "test.log")
         args = dotdict(
             {
@@ -322,9 +324,6 @@ class TestWorkerLogging(unittest.TestCase):
             with open(wpath) as f:
                 content = f.read()
             self.assertIn("winner", content)
-
-        import shutil
-        shutil.rmtree(tmpdir)
 
 
 if __name__ == "__main__":
