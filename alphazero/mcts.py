@@ -41,7 +41,7 @@ class MCTS:
                 next_board, action, player
             )
         if self.terminal_state[next_board] is not None:
-            value = 1 if player == self.terminal_state[next_board] else 0
+            value = self.game.compute_reward(self.terminal_state[next_board], player)
         else:
             value = self.search(next_board, next_player)
         self.__backup(board, index, value)
@@ -70,6 +70,12 @@ class MCTS:
         proba, value = self.nnet.predict(canonical_board)
         actions = self.game.available_actions(board)
         self.available_actions[board] = actions
+        if len(actions) == 0:
+            self.prior_probability[board] = numpy.array([])
+            self.total_visit_count[board] = 1
+            self.mean_action_value[board] = numpy.zeros(0)
+            self.visit_count[board] = numpy.zeros(0)
+            return value
         self.prior_probability[board] = proba[actions] / numpy.sum(proba[actions])
         self.total_visit_count[board] = 1
         self.mean_action_value[board] = numpy.zeros(len(actions))
