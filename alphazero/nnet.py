@@ -78,10 +78,10 @@ class _AlphaZeroModel(nn.Module):
         h = torch.relu(self.bn_init(self.conv_init(x)))
         h = self.res_blocks(h)
 
-        # Policy head
+        # Policy head (returns logits; caller applies softmax)
         p = torch.relu(self.policy_bn(self.policy_conv(h)))
         p = p.view(p.size(0), -1)
-        p = torch.softmax(self.policy_fc(p), dim=1)
+        p = self.policy_fc(p)
 
         # Value head
         v = torch.relu(self.value_bn(self.value_conv(h)))
@@ -141,10 +141,10 @@ class AlphaZeroNNet(NNet):
         for _ in range(self.args.epochs):
             for batch_states, batch_policies, batch_values in loader:
                 self.optimizer.zero_grad()
-                pred_policies, pred_values = self.model(batch_states)
-                policy_loss = -torch.sum(
-                    batch_policies * torch.log(pred_policies + 1e-8)
-                ) / batch_states.size(0)
+                policy_logits, pred_values = self.model(batch_states)
+                policy_loss = torch.nn.functional.cross_entropy(
+                    policy_logits, batch_policies
+                )
                 value_loss = torch.mean((pred_values - batch_values) ** 2)
                 loss = policy_loss + value_loss
                 loss.backward()
@@ -159,7 +159,8 @@ class AlphaZeroNNet(NNet):
         )
         self.model.eval()
         with torch.inference_mode():
-            policy, value = self.model(state)
+            policy_logits, value = self.model(state)
+            policy = torch.softmax(policy_logits, dim=1)
         return policy[0].numpy(), value[0][0].numpy()
 
     def save_checkpoint(self, filename):
@@ -176,7 +177,10 @@ class AlphaZeroNNet(NNet):
         if len(files) < 1:
             return
         latest_file = max(files, key=os.path.getmtime)
-        checkpoint = torch.load(latest_file, weights_only=True)
-        self.model.load_state_dict(checkpoint["model"])
-        self.optimizer.load_state_dict(checkpoint["optimizer"])
-        logging.info("load checkpoint from %s", latest_file)
+        try:
+            checkpoint = torch.load(latest_file, weights_only=True)
+            self.model.load_state_dict(checkpoint["model"])
+            self.optimizer.load_state_dict(checkpoint["optimizer"])
+            logging.info("load checkpoint from %s", latest_file)
+        except (RuntimeError, KeyError) as e:
+            logging.error("failed to load checkpoint from %s: %s", latest_file, e)
