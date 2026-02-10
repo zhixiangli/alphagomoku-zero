@@ -12,6 +12,12 @@ config, and call :func:`run_training`.
 import logging
 import os
 import sys
+from dataclasses import MISSING, fields
+
+from alphazero.config import AlphaZeroConfig
+
+# Build a mapping of field name -> default value from the config dataclass
+_DEFAULTS = {f.name: f.default for f in fields(AlphaZeroConfig) if f.default is not MISSING}
 
 
 def setup_logging(logpath, console=True):
@@ -37,8 +43,8 @@ def setup_logging(logpath, console=True):
 
 def add_alphazero_args(
     parser,
-    save_checkpoint_path="./data/model",
-    sample_pool_file="./data/samples.pkl",
+    save_checkpoint_path=_DEFAULTS["save_checkpoint_path"],
+    sample_pool_file=_DEFAULTS["sample_pool_file"],
 ):
     """Add common AlphaZero config arguments to an argparse parser.
 
@@ -50,24 +56,24 @@ def add_alphazero_args(
     # Persistence
     parser.add_argument("-save_checkpoint_path", default=save_checkpoint_path)
     parser.add_argument("-sample_pool_file", default=sample_pool_file)
-    parser.add_argument("-persist_interval", type=int, default=50)
+    parser.add_argument("-persist_interval", type=int, default=_DEFAULTS["persist_interval"])
 
     # Training
-    parser.add_argument("-batch_size", type=int, default=1024)
-    parser.add_argument("-epochs", type=int, default=20)
-    parser.add_argument("-lr", type=float, default=5e-3)
-    parser.add_argument("-l2", type=float, default=1e-4)
+    parser.add_argument("-batch_size", type=int, default=_DEFAULTS["batch_size"])
+    parser.add_argument("-epochs", type=int, default=_DEFAULTS["epochs"])
+    parser.add_argument("-lr", type=float, default=_DEFAULTS["lr"])
+    parser.add_argument("-l2", type=float, default=_DEFAULTS["l2"])
 
     # Neural network architecture
-    parser.add_argument("-conv_filters", type=int, default=256)
-    parser.add_argument("-conv_kernel", default=(3, 3))
-    parser.add_argument("-residual_block_num", type=int, default=2)
+    parser.add_argument("-conv_filters", type=int, default=_DEFAULTS["conv_filters"])
+    parser.add_argument("-conv_kernel", default=_DEFAULTS["conv_kernel"])
+    parser.add_argument("-residual_block_num", type=int, default=_DEFAULTS["residual_block_num"])
 
     # MCTS / self-play
-    parser.add_argument("-simulation_num", type=int, default=500)
-    parser.add_argument("-c_puct", type=float, default=1)
-    parser.add_argument("-max_sample_pool_size", type=int, default=360000)
-    parser.add_argument("-temp_step", type=int, default=1)
+    parser.add_argument("-simulation_num", type=int, default=_DEFAULTS["simulation_num"])
+    parser.add_argument("-c_puct", type=float, default=_DEFAULTS["c_puct"])
+    parser.add_argument("-max_sample_pool_size", type=int, default=_DEFAULTS["max_sample_pool_size"])
+    parser.add_argument("-temp_step", type=int, default=_DEFAULTS["temp_step"])
 
 
 def extract_alphazero_args(cli_args):
