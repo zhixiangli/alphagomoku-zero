@@ -5,55 +5,15 @@
 import copy
 import itertools
 import logging
-import multiprocessing
 import os
 import pickle
 import random
 import threading
 from collections import deque
-from concurrent.futures import ProcessPoolExecutor
 
 import numpy
 
 from alphazero.mcts import MCTS
-from alphazero.trainer import setup_logging
-
-# ---------------------------------------------------------------------------
-# Worker-process globals (set once per worker by _init_self_play_worker)
-# ---------------------------------------------------------------------------
-_worker_game = None
-_worker_nnet = None
-_worker_args = None
-
-
-def _worker_logpath(logpath, worker_id):
-    """Derive a per-worker log file path from the main log path."""
-    base, ext = os.path.splitext(logpath)
-    return f"{base}.worker-{worker_id}{ext}"
-
-
-def _init_self_play_worker(game_class, nnet_class, model_state_dict, args, counter=None):
-    """Initialise a worker process with its own game and neural network."""
-    global _worker_game, _worker_nnet, _worker_args
-    numpy.random.seed()  # reseed from OS entropy in each worker process
-    try:
-        logpath = args.logpath
-    except (AttributeError, KeyError):
-        logpath = None
-    if logpath and counter is not None:
-        with counter.get_lock():
-            worker_id = counter.value
-            counter.value += 1
-        setup_logging(_worker_logpath(logpath, worker_id))
-    _worker_args = args
-    _worker_game = game_class(args)
-    _worker_nnet = nnet_class(_worker_game, args)
-    _worker_nnet.model.load_state_dict(model_state_dict)
-
-
-def _self_play_game(game_index=None):
-    """Run one self-play game inside a worker process."""
-    return play_one_game(_worker_game, _worker_nnet, _worker_args)
 
 
 def play_one_game(game, nnet, args):
@@ -114,35 +74,16 @@ class RL:
         return play_one_game(self.game, self.nnet, self.args)
 
     def start(self):
-        num_workers = max((os.cpu_count() or 1) - 1, 1)
         for round_num in itertools.count():
             logging.info(
-                "round %d: playing %d self-play games with %d workers",
+                "round %d: playing %d self-play games",
                 round_num,
                 self.args.games_per_training,
-                num_workers,
             )
-            model_state = copy.deepcopy(self.nnet.model.state_dict())
-            mp_context = multiprocessing.get_context("spawn")
-            worker_counter = mp_context.Value("i", 0)
-            with ProcessPoolExecutor(
-                max_workers=num_workers,
-                mp_context=mp_context,
-                initializer=_init_self_play_worker,
-                initargs=(
-                    type(self.game),
-                    type(self.nnet),
-                    model_state,
-                    self.args,
-                    worker_counter,
-                ),
-            ) as executor:
-                all_game_samples = list(
-                    executor.map(
-                        _self_play_game,
-                        range(self.args.games_per_training),
-                    )
-                )
+            all_game_samples = [
+                play_one_game(self.game, self.nnet, self.args)
+                for _ in range(self.args.games_per_training)
+            ]
             for samples in all_game_samples:
                 augmented_data = self.game.augment_samples(samples)
                 self.sample_pool.extend(augmented_data)
