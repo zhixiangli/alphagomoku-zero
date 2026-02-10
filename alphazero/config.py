@@ -39,10 +39,6 @@ class AlphaZeroConfig:
     # buffer. Oldest samples are evicted when the pool exceeds this size.
     max_sample_pool_size: int = 300000
 
-    # Save model checkpoint and persist the sample pool every this many
-    # self-play iterations.
-    persist_interval: int = 50
-
     # Train the neural network every this many self-play iterations,
     # provided enough samples have been collected (>= batch_size).
     train_interval: int = 20
