@@ -74,7 +74,7 @@ uv run python -m gomoku.trainer -rows 9 -columns 9 -n_in_row 4
 | `-rows` | 15 | Board rows |
 | `-columns` | 15 | Board columns |
 | `-n_in_row` | 5 | Consecutive stones needed to win |
-| `-simulation_num` | 500 | MCTS simulations per move |
+| `-simulation_num` | 1000 | MCTS simulations per move |
 | `-batch_size` | 1024 | Training batch size |
 | `-lr` | 5e-3 | Learning rate |
 | `-epochs` | 20 | Training epochs per iteration |
@@ -118,7 +118,7 @@ uv run python battle.py -is_battle 1
 Compare two trained model checkpoints by playing them against each other:
 
 ```sh
-uv run python battle.py -eval 1 -save_checkpoint_path ./data/gomoku/model -eval_checkpoint_path ./data/gomoku/model2 -num_eval_games 50
+uv run python battle.py -eval 1 -save_checkpoint_path ./gomoku/data/model -eval_checkpoint_path ./gomoku/data/model2 -num_eval_games 50
 ```
 
 ## License
