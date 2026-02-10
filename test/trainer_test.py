@@ -22,7 +22,6 @@ class TestAddAlphaZeroArgs(unittest.TestCase):
         expected = {
             "save_checkpoint_path",
             "sample_pool_file",
-            "persist_interval",
             "train_interval",
             "batch_size",
             "epochs",
@@ -73,7 +72,6 @@ class TestExtractAlphaZeroArgs(unittest.TestCase):
             "batch_size",
             "epochs",
             "max_sample_pool_size",
-            "persist_interval",
             "train_interval",
             "lr",
             "l2",

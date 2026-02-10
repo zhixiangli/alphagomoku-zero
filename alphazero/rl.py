@@ -80,7 +80,6 @@ class RL:
                 and (i + 1) % self.args.train_interval == 0
             ):
                 self.nnet.train(random.sample(self.sample_pool, self.args.batch_size))
-            if (i + 1) % self.args.persist_interval == 0:
                 persist_sample_pool_thread = threading.Thread(
                     target=self.persist_sample_pool,
                     args=[copy.deepcopy(self.sample_pool)],
