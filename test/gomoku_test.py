@@ -199,5 +199,83 @@ class TestGomoku(unittest.TestCase):
         self.assertIn("training complete:", messages)
 
 
+class TestGomokuHelpers(unittest.TestCase):
+    def setUp(self):
+        self.args = dotdict(
+            {
+                "rows": 3,
+                "columns": 3,
+                "n_in_row": 2,
+                "conv_filters": 16,
+                "conv_kernel": (3, 3),
+                "residual_block_num": 2,
+                "save_checkpoint_path": "./tmp",
+                "max_sample_pool_size": 10000,
+                "l2": 1e-4,
+                "lr": 1e-3,
+                "sample_pool_file": "./tmp",
+            }
+        )
+        self.game = GomokuGame(self.args)
+
+    def test_hex_action(self):
+        self.assertEqual(self.game.hex_action(0), "[00]")
+        self.assertEqual(self.game.hex_action(4), "[11]")
+        self.assertEqual(self.game.hex_action(8), "[22]")
+
+    def test_dec_action(self):
+        self.assertEqual(self.game.dec_action("B[12]"), (1, 2))
+        self.assertEqual(self.game.dec_action("W[00]"), (0, 0))
+        self.assertEqual(self.game.dec_action("B[22]"), (2, 2))
+
+    def test_structure_sgf(self):
+        sgf = "B[00];W[11];B[22]"
+        result = self.game.structure_sgf(sgf)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0], ("B", (0, 0)))
+        self.assertEqual(result[1], ("W", (1, 1)))
+        self.assertEqual(result[2], ("B", (2, 2)))
+
+    def test_structure_sgf_empty(self):
+        result = self.game.structure_sgf("")
+        self.assertEqual(result, [])
+
+    def test_to_board(self):
+        sgf = "B[00];W[11]"
+        board = self.game.to_board(sgf)
+        self.assertEqual(board[0, 0], ChessType.BLACK)
+        self.assertEqual(board[1, 1], ChessType.WHITE)
+        self.assertEqual(board[0, 1], ChessType.EMPTY)
+        self.assertEqual(board.shape, (3, 3))
+
+    def test_to_board_empty(self):
+        board = self.game.to_board("")
+        expected = numpy.full((3, 3), ChessType.EMPTY, dtype="U1")
+        self.assertTrue(numpy.array_equal(board, expected))
+
+    def test_initial_state(self):
+        board, player = self.game.get_initial_state()
+        self.assertEqual(board, "")
+        self.assertEqual(player, ChessType.BLACK)
+
+    def test_available_actions_empty_board(self):
+        actions = self.game.available_actions("")
+        self.assertEqual(actions, list(range(9)))
+
+    def test_augment_samples(self):
+        board = numpy.zeros((3, 3, 2))
+        board[0, 0, 0] = 1
+        policy = numpy.zeros(9)
+        policy[0] = 1.0
+        samples = [(board, policy, 1.0)]
+        augmented = self.game.augment_samples(samples)
+        self.assertEqual(len(augmented), 8)
+        for b, p, v in augmented:
+            self.assertEqual(b.shape, (3, 3, 2))
+            self.assertEqual(len(p), 9)
+            self.assertAlmostEqual(numpy.sum(p), 1.0)
+            self.assertEqual(v, 1.0)
+
+
 if __name__ == "__main__":
     unittest.main()
