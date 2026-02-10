@@ -15,7 +15,7 @@ class TestAlphaZeroConfig(unittest.TestCase):
         self.assertEqual(config.columns, 10)
         self.assertEqual(config.simulation_num, 500)
         self.assertEqual(config.c_puct, 1.0)
-        self.assertEqual(config.temp_step, 1)
+        self.assertEqual(config.temp_step, 2)
         self.assertEqual(config.batch_size, 1024)
         self.assertEqual(config.epochs, 20)
         self.assertEqual(config.train_interval, 20)
