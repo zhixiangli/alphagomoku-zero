@@ -98,8 +98,8 @@ class TestGomokuTerminalDetection6x6(unittest.TestCase):
             (ChessType.BLACK, 2, 4),
         ]
         board = self._make_board(moves)
-        # Last move at (2,2) → action = 2*6+2 = 14
-        result = self.game.is_terminal_state(board, 14, ChessType.BLACK)
+        # Last move at (2,4) → action = 2*6+4 = 16
+        result = self.game.is_terminal_state(board, 16, ChessType.BLACK)
         self.assertEqual(result, ChessType.BLACK)
 
     def test_win_at_board_edge(self):
