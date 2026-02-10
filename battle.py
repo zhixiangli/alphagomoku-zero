@@ -75,7 +75,6 @@ if __name__ == "__main__":
     parser.add_argument("-eval_checkpoint_path", default="./gomoku/data/model2")
     parser.add_argument("-eval_simulation_num", type=int, default=None)
     parser.add_argument("-eval_c_puct", type=float, default=None)
-    parser.add_argument("-logpath", default="./gomoku/data/gomoku.log")
 
     # Game-specific config (Gomoku)
     parser.add_argument("-rows", type=int, default=15)
@@ -87,6 +86,7 @@ if __name__ == "__main__":
         parser,
         save_checkpoint_path="./gomoku/data/model",
         sample_pool_file="./gomoku/data/samples.pkl",
+        logpath="./gomoku/data/gomoku.log",
     )
 
     cli_args = parser.parse_args()

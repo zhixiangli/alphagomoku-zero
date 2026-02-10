@@ -22,6 +22,7 @@ class TestAddAlphaZeroArgs(unittest.TestCase):
         expected = {
             "save_checkpoint_path",
             "sample_pool_file",
+            "logpath",
             "games_per_training",
             "batch_size",
             "epochs",
@@ -80,6 +81,7 @@ class TestExtractAlphaZeroArgs(unittest.TestCase):
             "residual_block_num",
             "save_checkpoint_path",
             "sample_pool_file",
+            "logpath",
         }
         self.assertEqual(expected_keys, set(result.keys()))
 

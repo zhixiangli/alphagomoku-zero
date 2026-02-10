@@ -47,6 +47,7 @@ def add_alphazero_args(
     parser,
     save_checkpoint_path=_DEFAULTS["save_checkpoint_path"],
     sample_pool_file=_DEFAULTS["sample_pool_file"],
+    logpath=_DEFAULTS["logpath"],
 ):
     """Add common AlphaZero config arguments to an argparse parser.
 
@@ -58,6 +59,7 @@ def add_alphazero_args(
     # Persistence
     parser.add_argument("-save_checkpoint_path", default=save_checkpoint_path)
     parser.add_argument("-sample_pool_file", default=sample_pool_file)
+    parser.add_argument("-logpath", default=logpath)
     parser.add_argument(
         "-games_per_training", type=int, default=_DEFAULTS["games_per_training"]
     )
@@ -107,6 +109,7 @@ def extract_alphazero_args(cli_args):
         residual_block_num=cli_args.residual_block_num,
         save_checkpoint_path=cli_args.save_checkpoint_path,
         sample_pool_file=cli_args.sample_pool_file,
+        logpath=cli_args.logpath,
     )
 
 
