@@ -174,6 +174,30 @@ class TestGomoku(unittest.TestCase):
         self.nnet.load_checkpoint(os.path.join(tmpdir, "nonexistent_model_prefix"))
         os.rmdir(tmpdir)
 
+    def test_train_logs_progress(self):
+        """train() should log epoch progress with loss and timing info."""
+        self.args.batch_size = 4
+        self.args.epochs = 2
+        nnet = AlphaZeroNNet(self.game, self.args)
+
+        # Create minimal training data
+        rows, cols = self.args.rows, self.args.columns
+        data = [
+            (numpy.zeros((rows, cols, 2)), numpy.ones(rows * cols) / (rows * cols), 1.0)
+            for _ in range(8)
+        ]
+
+        with self.assertLogs("root", level="INFO") as cm:
+            nnet.train(data)
+
+        messages = "\n".join(cm.output)
+        self.assertIn("training start: 8 samples, 2 epochs, batch_size=4", messages)
+        self.assertIn("epoch 1/2", messages)
+        self.assertIn("epoch 2/2", messages)
+        self.assertIn("policy_loss:", messages)
+        self.assertIn("value_loss:", messages)
+        self.assertIn("training complete:", messages)
+
 
 if __name__ == "__main__":
     unittest.main()

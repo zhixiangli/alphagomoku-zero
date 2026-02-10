@@ -162,8 +162,20 @@ class AlphaZeroNNet(NNet):
             dataset, batch_size=self.args.batch_size, shuffle=True
         )
 
+        logging.info(
+            "training start: %d samples, %d epochs, batch_size=%d",
+            len(dataset),
+            self.args.epochs,
+            self.args.batch_size,
+        )
+        train_start = time.time()
         self.model.train()
-        for _ in range(self.args.epochs):
+        for epoch in range(self.args.epochs):
+            epoch_start = time.time()
+            epoch_policy_loss = 0.0
+            epoch_value_loss = 0.0
+            epoch_total_loss = 0.0
+            num_batches = 0
             for batch_states, batch_policies, batch_values in loader:
                 self.optimizer.zero_grad(set_to_none=True)
                 policy_logits, pred_values = self.model(batch_states)
@@ -174,6 +186,22 @@ class AlphaZeroNNet(NNet):
                 loss = policy_loss + value_loss
                 loss.backward()
                 self.optimizer.step()
+                epoch_policy_loss += policy_loss.item()
+                epoch_value_loss += value_loss.item()
+                epoch_total_loss += loss.item()
+                num_batches += 1
+            epoch_elapsed = time.time() - epoch_start
+            logging.info(
+                "epoch %d/%d - %.3fs - loss: %.4f - policy_loss: %.4f - value_loss: %.4f",
+                epoch + 1,
+                self.args.epochs,
+                epoch_elapsed,
+                epoch_total_loss / num_batches,
+                epoch_policy_loss / num_batches,
+                epoch_value_loss / num_batches,
+            )
+        total_elapsed = time.time() - train_start
+        logging.info("training complete: %.3fs total", total_elapsed)
         self._frozen_model = None
 
     def predict(self, board):
