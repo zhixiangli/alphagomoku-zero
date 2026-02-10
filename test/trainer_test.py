@@ -164,33 +164,6 @@ class TestGomokuTrainerMain(unittest.TestCase):
         self.assertEqual(config.sample_pool_file, "./data/gomoku/samples.pkl")
 
 
-class TestTicTacToeTrainerMain(unittest.TestCase):
-    def test_main_is_importable(self):
-        """tictactoe.trainer.main exists and is callable."""
-        from tictactoe.trainer import main
-
-        self.assertTrue(callable(main))
-
-    @patch("tictactoe.trainer.run_training")
-    @patch("tictactoe.trainer.setup_logging")
-    def test_main_wires_correctly(self, mock_logging, mock_run):
-        """main() parses args, builds config, and calls run_training."""
-        from tictactoe.trainer import main
-
-        with patch(
-            "sys.argv", ["trainer", "-rows", "3", "-columns", "3", "-n_in_row", "3"]
-        ):
-            main()
-        mock_run.assert_called_once()
-        args, _ = mock_run.call_args
-        # args[2] is the config
-        config = args[2]
-        self.assertEqual(config.rows, 3)
-        self.assertEqual(config.columns, 3)
-        self.assertEqual(config.n_in_row, 3)
-        self.assertEqual(config.save_checkpoint_path, "./data/tictactoe/model")
-        self.assertEqual(config.sample_pool_file, "./data/tictactoe/samples.pkl")
-
 
 if __name__ == "__main__":
     unittest.main()

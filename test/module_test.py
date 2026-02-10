@@ -185,12 +185,6 @@ class TestGomokuModuleIntegration(unittest.TestCase):
         with self.assertRaises(ModuleNotFoundError):
             importlib.import_module("gomoku.nnet")
 
-    def test_tictactoe_nnet_deleted(self):
-        """tictactoe/nnet.py should no longer exist."""
-        import importlib
-
-        with self.assertRaises(ModuleNotFoundError):
-            importlib.import_module("tictactoe.nnet")
 
 
 if __name__ == "__main__":

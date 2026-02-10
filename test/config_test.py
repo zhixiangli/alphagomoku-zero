@@ -5,7 +5,7 @@ import unittest
 
 from alphazero.config import AlphaZeroConfig
 from gomoku.config import GomokuConfig
-from tictactoe.config import TicTacToeConfig
+
 
 
 class TestAlphaZeroConfig(unittest.TestCase):
@@ -64,12 +64,6 @@ class TestGomokuConfig(unittest.TestCase):
         self.assertEqual(config.c_puct, 1.0)
         self.assertEqual(config.batch_size, 1024)
 
-
-class TestTicTacToeConfig(unittest.TestCase):
-    def test_game_specific_paths(self):
-        config = TicTacToeConfig()
-        self.assertEqual(config.save_checkpoint_path, "./data/tictactoe/model")
-        self.assertEqual(config.sample_pool_file, "./data/tictactoe/samples.pkl")
 
 
 if __name__ == "__main__":
