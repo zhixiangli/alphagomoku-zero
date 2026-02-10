@@ -39,9 +39,10 @@ class AlphaZeroConfig:
     # buffer. Oldest samples are evicted when the pool exceeds this size.
     max_sample_pool_size: int = 300000
 
-    # Train the neural network every this many self-play iterations,
-    # provided enough samples have been collected (>= batch_size).
-    train_interval: int = 20
+    # Number of self-play games to complete before each neural network
+    # training step. All games run concurrently across CPU cores. Training
+    # is triggered only when enough samples have been collected (>= batch_size).
+    games_per_training: int = 20
 
     # Learning rate for the Adam optimizer used to train the neural network.
     lr: float = 5e-3

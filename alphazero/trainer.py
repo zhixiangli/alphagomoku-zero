@@ -59,7 +59,7 @@ def add_alphazero_args(
     parser.add_argument("-save_checkpoint_path", default=save_checkpoint_path)
     parser.add_argument("-sample_pool_file", default=sample_pool_file)
     parser.add_argument(
-        "-train_interval", type=int, default=_DEFAULTS["train_interval"]
+        "-games_per_training", type=int, default=_DEFAULTS["games_per_training"]
     )
 
     # Training
@@ -99,7 +99,7 @@ def extract_alphazero_args(cli_args):
         batch_size=cli_args.batch_size,
         epochs=cli_args.epochs,
         max_sample_pool_size=cli_args.max_sample_pool_size,
-        train_interval=cli_args.train_interval,
+        games_per_training=cli_args.games_per_training,
         lr=cli_args.lr,
         l2=cli_args.l2,
         conv_filters=cli_args.conv_filters,

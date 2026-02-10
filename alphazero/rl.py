@@ -5,15 +5,76 @@
 import copy
 import itertools
 import logging
+import multiprocessing
 import os
 import pickle
 import random
 import threading
 from collections import deque
+from concurrent.futures import ProcessPoolExecutor
 
 import numpy
 
 from alphazero.mcts import MCTS
+
+# ---------------------------------------------------------------------------
+# Worker-process globals (set once per worker by _init_self_play_worker)
+# ---------------------------------------------------------------------------
+_worker_game = None
+_worker_nnet = None
+_worker_args = None
+
+
+def _init_self_play_worker(game_class, nnet_class, model_state_dict, args):
+    """Initialise a worker process with its own game and neural network."""
+    global _worker_game, _worker_nnet, _worker_args
+    numpy.random.seed()  # reseed from OS entropy in each worker process
+    _worker_args = args
+    _worker_game = game_class(args)
+    _worker_nnet = nnet_class(_worker_game, args)
+    _worker_nnet.model.load_state_dict(model_state_dict)
+
+
+def _self_play_game(game_index=None):
+    """Run one self-play game inside a worker process."""
+    return play_one_game(_worker_game, _worker_nnet, _worker_args)
+
+
+def play_one_game(game, nnet, args):
+    """Play a complete self-play game. Returns a list of (board, policy, value) samples."""
+    board, player = game.get_initial_state()
+    canonical_boards, players, policies = [], [], []
+    mcts = MCTS(nnet, game, args)
+    max_moves = args.rows * args.columns
+    for i in itertools.count():
+        actions, counts = mcts.simulate(board, player)
+        pi = counts / numpy.sum(counts)
+        policy = numpy.zeros(args.rows * args.columns)
+        policy[actions] = pi
+        canonical_boards.append(game.get_canonical_form(board, player))
+        players.append(player)
+        policies.append(policy)
+
+        proba = 0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
+        action = (
+            actions[numpy.argmax(proba)]
+            if i >= args.temp_step
+            else numpy.random.choice(actions, p=proba)
+        )
+
+        next_board, next_player = game.next_state(board, action, player)
+        winner = game.is_terminal_state(next_board, action, player)
+        if winner is not None:
+            logging.info("winner: %s", winner)
+            values = numpy.array(
+                [game.compute_reward(winner, p) for p in players]
+            )
+            return list(zip(canonical_boards, policies, values))
+        assert i < max_moves, (
+            "Game exceeded maximum possible moves (%d). "
+            "Terminal state detection may be broken." % max_moves
+        )
+        board, player = next_board, next_player
 
 
 class RL:
@@ -34,51 +95,41 @@ class RL:
         )
 
     def play_against_itself(self):
-        board, player = self.game.get_initial_state()
-        canonical_boards, players, policies = [], [], []
-        mcts = MCTS(self.nnet, self.game, self.args)
-        max_moves = self.args.rows * self.args.columns
-        for i in itertools.count():
-            actions, counts = mcts.simulate(board, player)
-            pi = counts / numpy.sum(counts)
-            policy = numpy.zeros(self.args.rows * self.args.columns)
-            policy[actions] = pi
-            canonical_boards.append(self.game.get_canonical_form(board, player))
-            players.append(player)
-            policies.append(policy)
-
-            proba = 0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
-            action = (
-                actions[numpy.argmax(proba)]
-                if i >= self.args.temp_step
-                else numpy.random.choice(actions, p=proba)
-            )
-
-            next_board, next_player = self.game.next_state(board, action, player)
-            winner = self.game.is_terminal_state(next_board, action, player)
-            if winner is not None:
-                logging.info("winner: %s", winner)
-                values = numpy.array(
-                    [self.game.compute_reward(winner, p) for p in players]
-                )
-                return [i for i in zip(canonical_boards, policies, values)]
-            assert i < max_moves, (
-                "Game exceeded maximum possible moves (%d). "
-                "Terminal state detection may be broken." % max_moves
-            )
-            board, player = next_board, next_player
+        return play_one_game(self.game, self.nnet, self.args)
 
     def start(self):
-        for i in itertools.count():
-            logging.info("iteration %d:", i)
-            samples = self.play_against_itself()
-            augmented_data = self.game.augment_samples(samples)
-            self.sample_pool.extend(augmented_data)
+        num_workers = os.cpu_count() or 1
+        for round_num in itertools.count():
+            logging.info(
+                "round %d: playing %d self-play games with %d workers",
+                round_num,
+                self.args.games_per_training,
+                num_workers,
+            )
+            model_state = copy.deepcopy(self.nnet.model.state_dict())
+            mp_context = multiprocessing.get_context("spawn")
+            with ProcessPoolExecutor(
+                max_workers=num_workers,
+                mp_context=mp_context,
+                initializer=_init_self_play_worker,
+                initargs=(
+                    type(self.game),
+                    type(self.nnet),
+                    model_state,
+                    self.args,
+                ),
+            ) as executor:
+                all_game_samples = list(
+                    executor.map(
+                        _self_play_game,
+                        range(self.args.games_per_training),
+                    )
+                )
+            for samples in all_game_samples:
+                augmented_data = self.game.augment_samples(samples)
+                self.sample_pool.extend(augmented_data)
             logging.info("current sample pool size: %d", len(self.sample_pool))
-            if (
-                self.args.batch_size <= len(self.sample_pool)
-                and (i + 1) % self.args.train_interval == 0
-            ):
+            if self.args.batch_size <= len(self.sample_pool):
                 self.nnet.train(random.sample(self.sample_pool, self.args.batch_size))
                 persist_sample_pool_thread = threading.Thread(
                     target=self.persist_sample_pool,
