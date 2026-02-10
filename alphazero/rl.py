@@ -75,9 +75,8 @@ class RL:
             augmented_data = self.game.augment_samples(samples)
             self.sample_pool.extend(augmented_data)
             logging.info("current sample pool size: %d", len(self.sample_pool))
-            if self.args.batch_size > len(self.sample_pool):
-                continue
-            self.nnet.train(random.sample(self.sample_pool, self.args.batch_size))
+            if self.args.batch_size <= len(self.sample_pool) and (i + 1) % self.args.train_interval == 0:
+                self.nnet.train(random.sample(self.sample_pool, self.args.batch_size))
             if (i + 1) % self.args.persist_interval == 0:
                 persist_sample_pool_thread = threading.Thread(
                     target=self.persist_sample_pool,

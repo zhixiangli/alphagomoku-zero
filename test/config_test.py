@@ -18,6 +18,7 @@ class TestAlphaZeroConfig(unittest.TestCase):
         self.assertEqual(config.temp_step, 1)
         self.assertEqual(config.batch_size, 1024)
         self.assertEqual(config.epochs, 20)
+        self.assertEqual(config.train_interval, 20)
 
     def test_action_space_size(self):
         config = AlphaZeroConfig(rows=15, columns=15)

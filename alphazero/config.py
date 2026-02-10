@@ -28,6 +28,7 @@ class AlphaZeroConfig:
     epochs: int = 20
     max_sample_pool_size: int = 50000
     persist_interval: int = 50
+    train_interval: int = 20
 
     # Neural network architecture
     lr: float = 5e-3
