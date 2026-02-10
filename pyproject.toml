@@ -9,9 +9,7 @@ description = "AlphaZero implementation for board games (Gomoku, and more)"
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=1.24",
-    "keras>=3.13.1",
-    "tensorflow>=2.16",
-    "nvidia-cudnn-cu12>=9.3.0; sys_platform == 'linux'",
+    "torch>=2.0",
 ]
 
 [dependency-groups]

@@ -138,7 +138,7 @@ class TestTicTacToe(unittest.TestCase):
         prefix = os.path.join(tmpdir, "test_tictactoe_ckpt")
 
         self.nnet.save_checkpoint(prefix)
-        files = glob.glob(prefix + "*.weights.h5")
+        files = glob.glob(prefix + "*.pt")
         self.assertEqual(len(files), 1)
 
         self.nnet.load_checkpoint(prefix)

@@ -145,22 +145,11 @@ class TestGomoku(unittest.TestCase):
         )
 
     def test_value_head_shape(self):
-        """Value head must Flatten before Dense(256) per AlphaZero paper."""
-        layer_names = [layer.name for layer in self.nnet.model.layers]
-        # Find the value-head Flatten and Dense(256)
-        flatten_indices = [i for i, n in enumerate(layer_names) if "flatten" in n]
-        dense_256_indices = [
-            i
-            for i, layer in enumerate(self.nnet.model.layers)
-            if "dense" in layer.name and hasattr(layer, "units") and layer.units == 256
-        ]
-        # Flatten must appear before Dense(256) in the value head
-        self.assertTrue(len(flatten_indices) >= 1)
-        self.assertTrue(len(dense_256_indices) >= 1)
-        # The value-head Flatten should come before the value-head Dense(256)
-        self.assertTrue(
-            any(fi < di for fi in flatten_indices for di in dense_256_indices)
-        )
+        """Value head must have Flatten→Dense(256)→Dense(1) per AlphaZero paper."""
+        model = self.nnet.model
+        # Value head should have: value_fc1 (Linear, 256) → value_fc2 (Linear, 1)
+        self.assertEqual(model.value_fc1.out_features, 256)
+        self.assertEqual(model.value_fc2.out_features, 1)
 
     def test_checkpoint_round_trip(self):
         """Checkpoint save and load should preserve model weights."""
@@ -168,7 +157,7 @@ class TestGomoku(unittest.TestCase):
         prefix = os.path.join(tmpdir, "test_gomoku_ckpt")
 
         self.nnet.save_checkpoint(prefix)
-        files = glob.glob(prefix + "*.weights.h5")
+        files = glob.glob(prefix + "*.pt")
         self.assertEqual(len(files), 1)
 
         # Loading should not raise
