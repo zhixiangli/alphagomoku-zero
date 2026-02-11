@@ -27,8 +27,8 @@ def main():
     parser = argparse.ArgumentParser(description="Train AlphaZero on Gomoku")
 
     # Gomoku-specific arguments
-    parser.add_argument("-rows", type=int, default=15)
-    parser.add_argument("-columns", type=int, default=15)
+    parser.add_argument("-rows", type=int, default=9)
+    parser.add_argument("-columns", type=int, default=9)
     parser.add_argument("-n_in_row", type=int, default=5)
     parser.add_argument("-logpath", default="./gomoku/data/gomoku.log")
 
