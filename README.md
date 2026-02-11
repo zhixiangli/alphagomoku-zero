@@ -1,45 +1,25 @@
 # alphazero-board-games
 
-A general-purpose [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero) implementation for board games using Monte Carlo Tree Search (MCTS) and deep residual neural networks. Currently supports **Gomoku** (Five in a Row), with an extensible architecture for adding new games.
+A lightweight [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero) implementation for board games using Monte Carlo Tree Search (MCTS) and a residual policy/value network.  
+This repository currently provides two Gomoku presets:
+
+- `gomoku_9_9` — faster 9×9 setup for iteration
+- `gomoku_15_15` — standard 15×15 setup
 
 ## Project Structure
 
+```text
+alphazero/            Core AlphaZero components (game API, MCTS, network, RL loop, evaluation)
+gomoku_9_9/           9×9 Gomoku preset (config + trainer)
+gomoku_15_15/         15×15 Gomoku preset (config + trainer)
+battle.py             CLI for training, battle mode, and model-vs-model evaluation
+test/                 Unit tests
 ```
-alphazero/          Core AlphaZero algorithm (game interface, MCTS, neural network, self-play, evaluation)
-gomoku_9_9/             Gomoku game implementation (15×15 board, 5-in-a-row)
-battle.py           Gomoku battle & evaluation entry point (stdin/stdout JSON protocol)
-test/               Unit tests
-```
-
-### Core Algorithm (`alphazero/`)
-
-| File | Description |
-|------|-------------|
-| `game.py` | Abstract `Game` interface that every board game must implement |
-| `nnet.py` | Dual-headed residual neural network (policy head + value head) built on Keras |
-| `mcts.py` | Monte Carlo Tree Search with UCB-based selection and neural network leaf evaluation |
-| `rl.py` | Self-play reinforcement learning loop (generates training data and trains the network) |
-| `eval.py` | Two-agent tournament evaluation for comparing model checkpoints |
-| `config.py` | Shared hyperparameter configuration dataclass |
-| `module.py` | Dependency injection module for wiring game, network, and trainer |
-| `trainer.py` | CLI helpers and common training entry-point utilities |
-
-### Supported Games
-
-- **Gomoku** (`gomoku_9_9/`) — Configurable board size (default 15×15) and win condition (default 5-in-a-row). Includes D4 symmetry data augmentation (8 transformations).
 
 ## Prerequisites
 
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/) package manager
-
-### Dependencies
-
-- [TensorFlow](https://www.tensorflow.org/) ≥ 2.16
-- [Keras](https://keras.io/) ≥ 3.13.1
-- [NumPy](https://numpy.org/) ≥ 1.24
-
-## Setup
 
 Install dependencies:
 
@@ -55,71 +35,89 @@ uv run python -m unittest discover -s test -p '*_test.py'
 
 ## Training
 
-### Gomoku
+### 9×9 preset
 
 ```sh
 uv run python -m gomoku_9_9.trainer
 ```
 
-Customize board size and hyperparameters:
+### 15×15 preset
 
 ```sh
-uv run python -m gomoku_9_9.trainer -rows 9 -columns 9 -n_in_row 4
+uv run python -m gomoku_15_15.trainer
 ```
 
-### Key Training Arguments
+Both trainers expose all config fields as CLI flags, so you can override defaults:
 
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `-rows` | 15 | Board rows |
-| `-columns` | 15 | Board columns |
-| `-n_in_row` | 5 | Consecutive stones needed to win |
-| `-simulation_num` | 1000 | MCTS simulations per move |
-| `-batch_size` | 1024 | Training batch size |
-| `-lr` | 5e-3 | Learning rate |
-| `-epochs` | 20 | Training epochs per iteration |
-| `-c_puct` | 1.0 | MCTS exploration constant |
-| `-save_checkpoint_path` | `./data/<game>/model` | Path to save model checkpoints |
-| `-residual_block_num` | 2 | Number of residual blocks in the network |
-| `-conv_filters` | 256 | Convolutional filter count |
+```sh
+uv run python -m gomoku_15_15.trainer -simulation_num 1200 -train_interval 20
+```
 
-## Battle Mode (Gomoku)
+## Battle Mode
 
-Start an interactive battle agent that communicates via JSON over stdin/stdout:
+Run a JSON stdin/stdout battle agent (loads checkpoint from `-save_checkpoint_path`):
 
 ```sh
 uv run python battle.py -is_battle 1
 ```
 
-### JSON Protocol
+### JSON protocol
 
-**Input** (one JSON object per line on stdin):
+Input (one JSON object per line):
 
 ```json
 {
   "command": "NEXT_BLACK",
-  "chessboard": "<SGF string>"
+  "chessboard": "B[77];W[78]"
 }
 ```
 
-`command` is either `NEXT_BLACK` or `NEXT_WHITE`.
-
-**Output** (one JSON object per line on stdout):
+Output:
 
 ```json
 {
   "rowIndex": 7,
-  "columnIndex": 7
+  "columnIndex": 6
 }
 ```
 
-## Model Evaluation (Gomoku)
+`command` must be `NEXT_BLACK` or `NEXT_WHITE`.
 
-Compare two trained model checkpoints by playing them against each other:
+## Model Evaluation
+
+Compare two checkpoints against each other:
 
 ```sh
-uv run python battle.py -eval 1 -save_checkpoint_path ./gomoku_9_9/data/model -eval_checkpoint_path ./gomoku_9_9/data/model2 -num_eval_games 50
+uv run python battle.py \
+  -eval 1 \
+  -save_checkpoint_path ./gomoku_9_9/data/model \
+  -eval_checkpoint_path ./gomoku_9_9/data/model2 \
+  -num_eval_games 50
 ```
+
+Optional overrides for the second agent:
+
+- `-eval_simulation_num`
+- `-eval_c_puct`
+
+## Key Default Hyperparameters
+
+Defaults differ by preset and are defined in each config module:
+
+| Parameter | `gomoku_9_9` | `gomoku_15_15` |
+|---|---:|---:|
+| `rows`, `columns` | 9, 9 | 15, 15 |
+| `n_in_row` | 5 | 5 |
+| `simulation_num` | 400 | 900 |
+| `c_puct` | 1.5 | 1.5 |
+| `temp_step` | 8 | 12 |
+| `batch_size` | 512 | 512 |
+| `epochs` | 10 | 10 |
+| `train_interval` | 10 | 10 |
+| `lr` | 1e-3 | 1e-3 |
+| `conv_filters` | 128 | 128 |
+| `residual_block_num` | 4 | 6 |
+| `max_sample_pool_size` | 100000 | 200000 |
 
 ## License
 

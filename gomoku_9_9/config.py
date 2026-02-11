@@ -19,8 +19,8 @@ class GomokuConfig(AlphaZeroConfig):
       Gomoku tactics (open-3s, open-4s, double-threat patterns).
 
     MCTS (simulation_num, c_puct, temp_step)
-      400 simulations give ~5 visits per legal move in the opening — comparable
-      search density to 1000 sims on 15×15, at ~60 % less wall-clock per game.
+      400 simulations keep per-move search robust on a compact 9×9 board
+      while maintaining substantially faster self-play iteration than 15×15.
       c_puct 1.5 boosts exploration enough to discover tactical threats the
       early policy head may miss.  temp_step 8 keeps the first ~20 % of moves
       stochastic for opening diversity, then switches to greedy play.
@@ -51,8 +51,8 @@ class GomokuConfig(AlphaZeroConfig):
     columns: int = 9
 
     # -- MCTS --------------------------------------------------------------
-    # 400 sims ≈ 5 visits per legal move in early game on a 9×9 board.
-    # Comparable search density to 1000 sims on 15×15, ~60 % faster.
+    # 400 simulations provide solid early-game search density on 9×9
+    # while preserving fast self-play throughput.
     simulation_num: int = 400
 
     # Higher exploration constant (1.5 vs 1.0) helps the search discover
@@ -73,8 +73,8 @@ class GomokuConfig(AlphaZeroConfig):
     residual_block_num: int = 4
 
     # -- Training -------------------------------------------------------------
-    # Smaller batch (512 vs 1024) allows training to start sooner — after
-    # just 2 self-play games with 8× augmentation (~720 samples).
+    # Smaller batches allow earlier training updates while keeping gradient
+    # estimates stable with augmented self-play samples.
     batch_size: int = 512
 
     # 10 epochs reduce overfitting risk when the replay buffer is small.
