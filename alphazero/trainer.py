@@ -55,6 +55,8 @@ def add_config_args(parser, config_class):
         kwargs = {}
         if f.default is not MISSING:
             kwargs["default"] = f.default
+        elif f.default_factory is not MISSING:
+            kwargs["default"] = f.default_factory()
         if f.type in _ARGPARSE_TYPES:
             kwargs["type"] = f.type
         parser.add_argument(f"-{f.name}", **kwargs)
