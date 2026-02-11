@@ -78,16 +78,12 @@ if __name__ == "__main__":
     parser.add_argument("-logpath", default="./gomoku/data/gomoku.log")
 
     # Game-specific config (Gomoku)
-    parser.add_argument("-rows", type=int, default=15)
-    parser.add_argument("-columns", type=int, default=15)
+    parser.add_argument("-rows", type=int, default=9)
+    parser.add_argument("-columns", type=int, default=9)
     parser.add_argument("-n_in_row", type=int, default=5)
 
-    # Common AlphaZero arguments
-    add_alphazero_args(
-        parser,
-        save_checkpoint_path="./gomoku/data/model",
-        sample_pool_file="./gomoku/data/samples.pkl",
-    )
+    # Common AlphaZero arguments (defaults pulled from GomokuConfig)
+    add_alphazero_args(parser, config_class=GomokuConfig)
 
     cli_args = parser.parse_args()
 
