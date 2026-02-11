@@ -27,17 +27,13 @@ def main():
     parser = argparse.ArgumentParser(description="Train AlphaZero on Gomoku")
 
     # Gomoku-specific arguments
-    parser.add_argument("-rows", type=int, default=15)
-    parser.add_argument("-columns", type=int, default=15)
+    parser.add_argument("-rows", type=int, default=9)
+    parser.add_argument("-columns", type=int, default=9)
     parser.add_argument("-n_in_row", type=int, default=5)
     parser.add_argument("-logpath", default="./gomoku/data/gomoku.log")
 
-    # Common AlphaZero arguments
-    add_alphazero_args(
-        parser,
-        save_checkpoint_path="./gomoku/data/model",
-        sample_pool_file="./gomoku/data/samples.pkl",
-    )
+    # Common AlphaZero arguments (defaults pulled from GomokuConfig)
+    add_alphazero_args(parser, config_class=GomokuConfig)
 
     cli_args = parser.parse_args()
     setup_logging(cli_args.logpath)

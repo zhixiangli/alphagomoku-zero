@@ -41,10 +41,10 @@ class TestGomokuConfig(unittest.TestCase):
 
     def test_default_gomoku_values(self):
         config = GomokuConfig()
-        self.assertEqual(config.rows, 15)
-        self.assertEqual(config.columns, 15)
+        self.assertEqual(config.rows, 9)
+        self.assertEqual(config.columns, 9)
         self.assertEqual(config.n_in_row, 5)
-        self.assertEqual(config.action_space_size, 225)
+        self.assertEqual(config.action_space_size, 81)
 
     def test_game_specific_paths(self):
         config = GomokuConfig()
@@ -60,9 +60,9 @@ class TestGomokuConfig(unittest.TestCase):
 
     def test_has_common_config_fields(self):
         config = GomokuConfig()
-        self.assertEqual(config.simulation_num, 1000)
-        self.assertEqual(config.c_puct, 1.0)
-        self.assertEqual(config.batch_size, 1024)
+        self.assertEqual(config.simulation_num, 400)
+        self.assertEqual(config.c_puct, 1.5)
+        self.assertEqual(config.batch_size, 512)
 
 
 if __name__ == "__main__":
