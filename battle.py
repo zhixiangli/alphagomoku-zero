@@ -18,9 +18,9 @@ from alphazero.trainer import (
     build_config_from_args,
     run_training,
 )
-from gomoku import configure_module
-from gomoku.config import GomokuConfig
-from gomoku.game import GomokuGame, ChessType
+from gomoku_9_9 import configure_module
+from gomoku_9_9.config import GomokuConfig
+from gomoku_9_9.game import GomokuGame, ChessType
 
 
 @unique
@@ -72,10 +72,10 @@ if __name__ == "__main__":
     parser.add_argument("-is_battle", type=int, default=0)
     parser.add_argument("-eval", type=int, default=0)
     parser.add_argument("-num_eval_games", type=int, default=50)
-    parser.add_argument("-eval_checkpoint_path", default="./gomoku/data/model2")
+    parser.add_argument("-eval_checkpoint_path", default="./gomoku_9_9/data/model2")
     parser.add_argument("-eval_simulation_num", type=int, default=None)
     parser.add_argument("-eval_c_puct", type=float, default=None)
-    parser.add_argument("-logpath", default="./gomoku/data/gomoku.log")
+    parser.add_argument("-logpath", default="./gomoku_9_9/data/gomoku.log")
 
     # All GomokuConfig fields auto-registered from the dataclass
     add_config_args(parser, GomokuConfig)

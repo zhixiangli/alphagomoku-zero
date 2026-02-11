@@ -5,7 +5,7 @@
 
 Provides reusable helpers for logging setup, CLI argument parsing,
 and training orchestration.  Game-specific trainers (e.g.
-``gomoku/trainer.py``) add their own arguments, build the game
+``gomoku_9_9/trainer.py``) add their own arguments, build the game
 config, and call :func:`run_training`.
 """
 

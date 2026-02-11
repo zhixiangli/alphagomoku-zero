@@ -4,7 +4,7 @@
 import unittest
 
 from alphazero.config import AlphaZeroConfig
-from gomoku.config import GomokuConfig
+from gomoku_9_9.config import GomokuConfig
 
 
 class TestAlphaZeroConfig(unittest.TestCase):
@@ -48,8 +48,8 @@ class TestGomokuConfig(unittest.TestCase):
 
     def test_game_specific_paths(self):
         config = GomokuConfig()
-        self.assertEqual(config.save_checkpoint_path, "./gomoku/data/model")
-        self.assertEqual(config.sample_pool_file, "./gomoku/data/samples.pkl")
+        self.assertEqual(config.save_checkpoint_path, "./gomoku_9_9/data/model")
+        self.assertEqual(config.sample_pool_file, "./gomoku_9_9/data/samples.pkl")
 
     def test_custom_gomoku_values(self):
         config = GomokuConfig(rows=3, columns=3, n_in_row=2)

@@ -12,7 +12,7 @@ from alphazero.trainer import (
     run_training,
     setup_logging,
 )
-from gomoku.config import GomokuConfig
+from gomoku_9_9.config import GomokuConfig
 
 
 class TestAddConfigArgs(unittest.TestCase):
@@ -37,8 +37,8 @@ class TestAddConfigArgs(unittest.TestCase):
         parser = argparse.ArgumentParser()
         add_config_args(parser, GomokuConfig)
         args = parser.parse_args([])
-        self.assertEqual(args.save_checkpoint_path, "./gomoku/data/model")
-        self.assertEqual(args.sample_pool_file, "./gomoku/data/samples.pkl")
+        self.assertEqual(args.save_checkpoint_path, "./gomoku_9_9/data/model")
+        self.assertEqual(args.sample_pool_file, "./gomoku_9_9/data/samples.pkl")
         self.assertEqual(args.simulation_num, 400)
         self.assertEqual(args.rows, 9)
         self.assertEqual(args.n_in_row, 5)
@@ -112,16 +112,16 @@ class TestSetupLogging(unittest.TestCase):
 
 class TestGomokuTrainerMain(unittest.TestCase):
     def test_main_is_importable(self):
-        """gomoku.trainer.main exists and is callable."""
-        from gomoku.trainer import main
+        """gomoku_9_9.trainer.main exists and is callable."""
+        from gomoku_9_9.trainer import main
 
         self.assertTrue(callable(main))
 
-    @patch("gomoku.trainer.run_training")
-    @patch("gomoku.trainer.setup_logging")
+    @patch("gomoku_9_9.trainer.run_training")
+    @patch("gomoku_9_9.trainer.setup_logging")
     def test_main_wires_correctly(self, mock_logging, mock_run):
         """main() parses args, builds config, and calls run_training."""
-        from gomoku.trainer import main
+        from gomoku_9_9.trainer import main
 
         with patch(
             "sys.argv", ["trainer", "-rows", "9", "-columns", "9", "-n_in_row", "3"]
@@ -134,8 +134,8 @@ class TestGomokuTrainerMain(unittest.TestCase):
         self.assertEqual(config.rows, 9)
         self.assertEqual(config.columns, 9)
         self.assertEqual(config.n_in_row, 3)
-        self.assertEqual(config.save_checkpoint_path, "./gomoku/data/model")
-        self.assertEqual(config.sample_pool_file, "./gomoku/data/samples.pkl")
+        self.assertEqual(config.save_checkpoint_path, "./gomoku_9_9/data/model")
+        self.assertEqual(config.sample_pool_file, "./gomoku_9_9/data/samples.pkl")
 
 
 if __name__ == "__main__":
