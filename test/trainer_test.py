@@ -3,93 +3,67 @@
 
 import argparse
 import unittest
+from dataclasses import fields
 from unittest.mock import patch, MagicMock
 
 from alphazero.trainer import (
-    add_alphazero_args,
-    extract_alphazero_args,
+    add_config_args,
+    build_config_from_args,
     run_training,
     setup_logging,
 )
+from gomoku.config import GomokuConfig
 
 
-class TestAddAlphaZeroArgs(unittest.TestCase):
-    def test_adds_all_common_args(self):
-        """All AlphaZeroConfig fields are present as CLI arguments."""
+class TestAddConfigArgs(unittest.TestCase):
+    def test_adds_all_config_fields(self):
+        """All GomokuConfig fields are present as CLI arguments."""
         parser = argparse.ArgumentParser()
-        add_alphazero_args(parser)
+        add_config_args(parser, GomokuConfig)
         args = parser.parse_args([])
-        expected = {
-            "save_checkpoint_path",
-            "sample_pool_file",
-            "train_interval",
-            "batch_size",
-            "epochs",
-            "lr",
-            "l2",
-            "conv_filters",
-            "conv_kernel",
-            "residual_block_num",
-            "simulation_num",
-            "c_puct",
-            "max_sample_pool_size",
-            "temp_step",
-        }
+        expected = {f.name for f in fields(GomokuConfig)}
         self.assertEqual(expected, set(vars(args).keys()))
 
     def test_cli_overrides(self):
         """CLI values override defaults."""
         parser = argparse.ArgumentParser()
-        add_alphazero_args(parser)
+        add_config_args(parser, GomokuConfig)
         args = parser.parse_args(["-batch_size", "64", "-lr", "0.001"])
         self.assertEqual(args.batch_size, 64)
         self.assertAlmostEqual(args.lr, 0.001)
 
-    def test_custom_path_defaults(self):
-        """Game-specific path defaults are respected."""
+    def test_defaults_match_config(self):
+        """Argparse defaults match the dataclass defaults."""
         parser = argparse.ArgumentParser()
-        add_alphazero_args(
-            parser,
-            save_checkpoint_path="./gomoku/data/model",
-            sample_pool_file="./gomoku/data/samples.pkl",
-        )
+        add_config_args(parser, GomokuConfig)
         args = parser.parse_args([])
         self.assertEqual(args.save_checkpoint_path, "./gomoku/data/model")
         self.assertEqual(args.sample_pool_file, "./gomoku/data/samples.pkl")
+        self.assertEqual(args.simulation_num, 400)
+        self.assertEqual(args.rows, 9)
+        self.assertEqual(args.n_in_row, 5)
 
 
-class TestExtractAlphaZeroArgs(unittest.TestCase):
-    def test_returns_correct_keys(self):
-        """Extracted dict contains exactly the AlphaZeroConfig fields."""
+class TestBuildConfigFromArgs(unittest.TestCase):
+    def test_builds_correct_config(self):
+        """build_config_from_args returns a valid config instance."""
         parser = argparse.ArgumentParser()
-        add_alphazero_args(parser)
-        cli_args = parser.parse_args([])
-        result = extract_alphazero_args(cli_args)
-        expected_keys = {
-            "simulation_num",
-            "c_puct",
-            "temp_step",
-            "batch_size",
-            "epochs",
-            "max_sample_pool_size",
-            "train_interval",
-            "lr",
-            "l2",
-            "conv_filters",
-            "conv_kernel",
-            "residual_block_num",
-            "save_checkpoint_path",
-            "sample_pool_file",
-        }
-        self.assertEqual(expected_keys, set(result.keys()))
-
-    def test_preserves_values(self):
-        """Extracted values match parsed CLI values."""
-        parser = argparse.ArgumentParser()
-        add_alphazero_args(parser)
+        add_config_args(parser, GomokuConfig)
         cli_args = parser.parse_args(["-batch_size", "128"])
-        result = extract_alphazero_args(cli_args)
-        self.assertEqual(result["batch_size"], 128)
+        config = build_config_from_args(GomokuConfig, cli_args)
+        self.assertIsInstance(config, GomokuConfig)
+        self.assertEqual(config.batch_size, 128)
+        self.assertEqual(config.rows, 9)
+
+    def test_ignores_extra_args(self):
+        """Extra CLI flags not in the config are silently ignored."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-logpath", default="./log")
+        add_config_args(parser, GomokuConfig)
+        cli_args = parser.parse_args([])
+        config = build_config_from_args(GomokuConfig, cli_args)
+        self.assertIsInstance(config, GomokuConfig)
+        self.assertFalse(hasattr(config, "logpath"))
 
 
 class TestRunTraining(unittest.TestCase):
