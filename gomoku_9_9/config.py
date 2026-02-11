@@ -91,5 +91,5 @@ class GomokuConfig(AlphaZeroConfig):
     max_sample_pool_size: int = 100000
 
     # Game-specific persistence paths
-    save_checkpoint_path: str = "./gomoku/data/model"
-    sample_pool_file: str = "./gomoku/data/samples.pkl"
+    save_checkpoint_path: str = "./gomoku_9_9/data/model"
+    sample_pool_file: str = "./gomoku_9_9/data/samples.pkl"

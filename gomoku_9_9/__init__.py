@@ -1,5 +1,5 @@
 from alphazero.nnet import AlphaZeroNNet
-from gomoku.game import GomokuGame
+from gomoku_9_9.game import GomokuGame
 
 
 def configure_module(module):

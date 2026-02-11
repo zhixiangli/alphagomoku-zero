@@ -10,9 +10,9 @@ from alphazero.game import Game
 from alphazero.module import AlphaZeroModule
 from alphazero.nnet import AlphaZeroNNet, NNet
 from alphazero.rl import RL
-from gomoku import configure_module
-from gomoku.config import GomokuConfig
-from gomoku.game import GomokuGame
+from gomoku_9_9 import configure_module
+from gomoku_9_9.config import GomokuConfig
+from gomoku_9_9.game import GomokuGame
 
 
 # --------------- lightweight mocks ---------------
@@ -162,7 +162,7 @@ class TestGomokuModuleIntegration(unittest.TestCase):
 
     def test_decoupling_game_does_not_import_nnet(self):
         """GomokuGame module has no dependency on nnet."""
-        import gomoku.game as game_module
+        import gomoku_9_9.game as game_module
 
         with open(game_module.__file__) as f:
             source = f.read()
@@ -171,7 +171,7 @@ class TestGomokuModuleIntegration(unittest.TestCase):
 
     def test_decoupling_config_does_not_import_nnet_or_game(self):
         """GomokuConfig module has no dependency on game or nnet."""
-        import gomoku.config as config_module
+        import gomoku_9_9.config as config_module
 
         with open(config_module.__file__) as f:
             source = f.read()
@@ -179,11 +179,11 @@ class TestGomokuModuleIntegration(unittest.TestCase):
         self.assertNotIn("GomokuGame", source)
 
     def test_gomoku_nnet_deleted(self):
-        """gomoku/nnet.py should no longer exist."""
+        """gomoku_9_9/nnet.py should no longer exist."""
         import importlib
 
         with self.assertRaises(ModuleNotFoundError):
-            importlib.import_module("gomoku.nnet")
+            importlib.import_module("gomoku_9_9.nnet")
 
 
 if __name__ == "__main__":

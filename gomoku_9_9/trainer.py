@@ -5,8 +5,8 @@
 
 Usage::
 
-    python -m gomoku.trainer
-    python -m gomoku.trainer -rows 9 -columns 9 -n_in_row 4
+    python -m gomoku_9_9.trainer
+    python -m gomoku_9_9.trainer -rows 9 -columns 9 -n_in_row 4
 """
 
 import argparse
@@ -18,14 +18,14 @@ from alphazero.trainer import (
     build_config_from_args,
     run_training,
 )
-from gomoku import configure_module
-from gomoku.config import GomokuConfig
-from gomoku.game import GomokuGame
+from gomoku_9_9 import configure_module
+from gomoku_9_9.config import GomokuConfig
+from gomoku_9_9.game import GomokuGame
 
 
 def main():
     parser = argparse.ArgumentParser(description="Train AlphaZero on Gomoku")
-    parser.add_argument("-logpath", default="./gomoku/data/gomoku.log")
+    parser.add_argument("-logpath", default="./gomoku_9_9/data/gomoku.log")
     add_config_args(parser, GomokuConfig)
 
     cli_args = parser.parse_args()

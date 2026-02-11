@@ -11,7 +11,7 @@ from dotdict import dotdict
 
 from alphazero.nnet import AlphaZeroNNet
 from alphazero.rl import RL
-from gomoku.game import GomokuGame, ChessType
+from gomoku_9_9.game import GomokuGame, ChessType
 
 
 class TestRL(unittest.TestCase):

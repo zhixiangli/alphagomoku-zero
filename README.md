@@ -6,7 +6,7 @@ A general-purpose [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero) implement
 
 ```
 alphazero/          Core AlphaZero algorithm (game interface, MCTS, neural network, self-play, evaluation)
-gomoku/             Gomoku game implementation (15×15 board, 5-in-a-row)
+gomoku_9_9/             Gomoku game implementation (15×15 board, 5-in-a-row)
 battle.py           Gomoku battle & evaluation entry point (stdin/stdout JSON protocol)
 test/               Unit tests
 ```
@@ -26,7 +26,7 @@ test/               Unit tests
 
 ### Supported Games
 
-- **Gomoku** (`gomoku/`) — Configurable board size (default 15×15) and win condition (default 5-in-a-row). Includes D4 symmetry data augmentation (8 transformations).
+- **Gomoku** (`gomoku_9_9/`) — Configurable board size (default 15×15) and win condition (default 5-in-a-row). Includes D4 symmetry data augmentation (8 transformations).
 
 ## Prerequisites
 
@@ -58,13 +58,13 @@ uv run python -m unittest discover -s test -p '*_test.py'
 ### Gomoku
 
 ```sh
-uv run python -m gomoku.trainer
+uv run python -m gomoku_9_9.trainer
 ```
 
 Customize board size and hyperparameters:
 
 ```sh
-uv run python -m gomoku.trainer -rows 9 -columns 9 -n_in_row 4
+uv run python -m gomoku_9_9.trainer -rows 9 -columns 9 -n_in_row 4
 ```
 
 ### Key Training Arguments
@@ -118,7 +118,7 @@ uv run python battle.py -is_battle 1
 Compare two trained model checkpoints by playing them against each other:
 
 ```sh
-uv run python battle.py -eval 1 -save_checkpoint_path ./gomoku/data/model -eval_checkpoint_path ./gomoku/data/model2 -num_eval_games 50
+uv run python battle.py -eval 1 -save_checkpoint_path ./gomoku_9_9/data/model -eval_checkpoint_path ./gomoku_9_9/data/model2 -num_eval_games 50
 ```
 
 ## License

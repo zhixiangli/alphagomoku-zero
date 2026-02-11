@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from alphazero.nnet import NNet
 from battle import Command, BattleAgent, GomokuBattleAgent
-from gomoku.game import GomokuGame, ChessType
+from gomoku_9_9.game import GomokuGame, ChessType
 
 
 class TestCommandEnum(unittest.TestCase):

@@ -13,7 +13,7 @@ import torch
 from dotdict import dotdict
 
 from alphazero.nnet import NNet, AlphaZeroNNet, _AlphaZeroModel, _ResidualBlock
-from gomoku.game import GomokuGame
+from gomoku_9_9.game import GomokuGame
 
 
 def _make_args(**overrides):

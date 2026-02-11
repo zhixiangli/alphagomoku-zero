@@ -21,7 +21,7 @@ from alphazero.game import Game
 from alphazero.mcts import MCTS
 from alphazero.nnet import NNet
 from alphazero.rl import RL
-from gomoku.game import GomokuGame, ChessType
+from gomoku_9_9.game import GomokuGame, ChessType
 
 
 class TestGomokuTerminalDetection6x6(unittest.TestCase):

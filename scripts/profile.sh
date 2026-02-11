@@ -44,7 +44,7 @@ for entry in "${FORMATS[@]}"; do
         --duration "${DURATION}" \
         --rate "${RATE}" \
         --subprocesses \
-        -- "${PYTHON}" -m gomoku.trainer ${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}
+        -- "${PYTHON}" -m gomoku_9_9.trainer ${TRAINER_ARGS[@]+"${TRAINER_ARGS[@]}"}
 done
 
 echo "Done. Reports saved to ${OUTDIR}/"

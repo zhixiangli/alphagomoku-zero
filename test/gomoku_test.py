@@ -10,7 +10,7 @@ import numpy
 from dotdict import dotdict
 
 from alphazero.game import Game
-from gomoku.game import GomokuGame, ChessType
+from gomoku_9_9.game import GomokuGame, ChessType
 from alphazero.nnet import AlphaZeroNNet
 
 
