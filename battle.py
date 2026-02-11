@@ -14,8 +14,8 @@ from alphazero.mcts import MCTS
 from alphazero.module import AlphaZeroModule
 from alphazero.trainer import (
     setup_logging,
-    add_alphazero_args,
-    extract_alphazero_args,
+    add_config_args,
+    build_config_from_args,
     run_training,
 )
 from gomoku import configure_module
@@ -77,25 +77,15 @@ if __name__ == "__main__":
     parser.add_argument("-eval_c_puct", type=float, default=None)
     parser.add_argument("-logpath", default="./gomoku/data/gomoku.log")
 
-    # Game-specific config (Gomoku)
-    parser.add_argument("-rows", type=int, default=9)
-    parser.add_argument("-columns", type=int, default=9)
-    parser.add_argument("-n_in_row", type=int, default=5)
-
-    # Common AlphaZero arguments (defaults pulled from GomokuConfig)
-    add_alphazero_args(parser, config_class=GomokuConfig)
+    # All GomokuConfig fields auto-registered from the dataclass
+    add_config_args(parser, GomokuConfig)
 
     cli_args = parser.parse_args()
 
     setup_logging(cli_args.logpath)
 
     # Build typed config from CLI arguments
-    config = GomokuConfig(
-        rows=cli_args.rows,
-        columns=cli_args.columns,
-        n_in_row=cli_args.n_in_row,
-        **extract_alphazero_args(cli_args),
-    )
+    config = build_config_from_args(GomokuConfig, cli_args)
 
     logging.info(config)
 
