@@ -9,10 +9,9 @@ This repository currently provides two Gomoku presets:
 ## Project Structure
 
 ```text
-alphazero/            Core AlphaZero components (game API, MCTS, network, RL loop, evaluation)
+alphazero/            Core AlphaZero components (game API, MCTS, network, RL loop)
 gomoku_9_9/           9×9 Gomoku preset (config + trainer)
 gomoku_15_15/         15×15 Gomoku preset (config + trainer)
-battle.py             CLI for training, battle mode, and model-vs-model evaluation
 test/                 Unit tests
 ```
 
@@ -52,53 +51,6 @@ Both trainers expose all config fields as CLI flags, so you can override default
 ```sh
 uv run python -m gomoku_15_15.trainer -simulation_num 1200 -train_interval 20
 ```
-
-## Battle Mode
-
-Run a JSON stdin/stdout battle agent (loads checkpoint from `-save_checkpoint_path`):
-
-```sh
-uv run python battle.py -is_battle 1
-```
-
-### JSON protocol
-
-Input (one JSON object per line):
-
-```json
-{
-  "command": "NEXT_BLACK",
-  "chessboard": "B[77];W[78]"
-}
-```
-
-Output:
-
-```json
-{
-  "rowIndex": 7,
-  "columnIndex": 6
-}
-```
-
-`command` must be `NEXT_BLACK` or `NEXT_WHITE`.
-
-## Model Evaluation
-
-Compare two checkpoints against each other:
-
-```sh
-uv run python battle.py \
-  -eval 1 \
-  -save_checkpoint_path ./gomoku_9_9/data/model \
-  -eval_checkpoint_path ./gomoku_9_9/data/model2 \
-  -num_eval_games 50
-```
-
-Optional overrides for the second agent:
-
-- `-eval_simulation_num`
-- `-eval_c_puct`
 
 ## Key Default Hyperparameters
 
