@@ -52,9 +52,8 @@ class GomokuConfig(AlphaZeroConfig):
     columns: int = 15
 
     # -- MCTS --------------------------------------------------------------
-    # 900 sims ≈ 4 visits per legal move in early game on a 15×15 board.
-    # Necessary search density for the larger 225-cell action space.
-    simulation_num: int = 900
+    # 450 sims provide a practical compute/strength trade-off on 15×15.
+    simulation_num: int = 450
 
     # Higher exploration constant (1.5 vs 1.0) helps the search discover
     # tactical threats (open-4s, double-3s) that a weak early policy misses.
