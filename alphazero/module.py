@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
-from alphazero.eval import Evaluator
 from alphazero.nnet import AlphaZeroNNet
 from alphazero.rl import RL
 
@@ -52,24 +51,3 @@ class AlphaZeroModule:
         nnet_class = self.resolve_nnet_class(game_class)
         nnet = nnet_class(game, config)
         return RL(nnet, game, config)
-
-    def create_evaluator(self, game_class, config1, config2):
-        """Create an Evaluator to pit two agents against each other.
-
-        Both configs must share the same board dimensions and game rules.
-        They may differ in MCTS parameters, neural-network architecture,
-        and checkpoint paths.
-
-        Args:
-            game_class: A Game subclass to instantiate.
-            config1: Config for agent 1.
-            config2: Config for agent 2.
-
-        Returns:
-            A configured Evaluator ready to run.
-        """
-        game = game_class(config1)
-        nnet_class = self.resolve_nnet_class(game_class)
-        nnet1 = nnet_class(game, config1)
-        nnet2 = nnet_class(game, config2)
-        return Evaluator(game, nnet1, config1, nnet2, config2)
