@@ -64,6 +64,10 @@ class GomokuConfig(AlphaZeroConfig):
     # This reduces random-looking placement while preserving opening variety.
     temp_step: int = 8
 
+    # Lower concentration gives spikier opening noise while keeping
+    # game-specific tuning isolated to 15×15 Gomoku.
+    dirichlet_alpha: float = 0.05
+
     # Reduce Dirichlet mixing so sampled actions track MCTS visit counts more
     # closely (less random early placements).
     dirichlet_epsilon: float = 0.10
