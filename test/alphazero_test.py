@@ -93,6 +93,8 @@ class TestAlphaZero(unittest.TestCase):
                 "max_sample_pool_size": 100000,
                 "sample_pool_file": "",
                 "temp_step": 5,
+                "dirichlet_alpha": 0.3,
+                "dirichlet_epsilon": 0.25,
             }
         )
         self.mcts = MCTS(self.nnet, self.game, self.args)
