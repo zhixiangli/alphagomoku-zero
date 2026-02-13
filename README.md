@@ -46,6 +46,29 @@ uv run python -m gomoku_9_9.trainer
 uv run python -m gomoku_15_15.trainer
 ```
 
+
+### Play against trained models (stdio)
+
+9×9:
+
+```sh
+uv run python -m gomoku_9_9.stdio_play
+```
+
+15×15:
+
+```sh
+uv run python -m gomoku_15_15.stdio_play
+```
+
+Optional flags (both commands):
+
+- `--human-color B|W` to choose who moves first
+- `--simulation-num N` to speed up/slow down AI thinking
+- `--checkpoint-path PATH_PREFIX` to load a different model prefix
+
+Move input uses column letters and row numbers, e.g. `E5` or `E 5`.
+
 Both trainers expose all config fields as CLI flags, so you can override defaults:
 
 ```sh
