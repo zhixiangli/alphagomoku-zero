@@ -19,4 +19,4 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["alphazero*", "gomoku_9_9*", "gomoku_15_15*"]
+include = ["alphazero*", "gomoku_9_9*", "gomoku_15_15*", "connect4*"]
