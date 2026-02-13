@@ -18,12 +18,13 @@ class GomokuConfig(AlphaZeroConfig):
       15×15 is the standard Gomoku board size (225 cells), offering a full
       tactical and strategic experience with complex opening theory.
 
-    MCTS (simulation_num, c_puct, temp_step)
-      900 simulations give ~4 visits per legal move in the opening —
+    MCTS (simulation_num, c_puct, temp_step, dirichlet_epsilon)
+      450 simulations give ~2 visits per legal move in the opening —
       necessary search density for the larger 225-cell action space.
       c_puct 1.5 boosts exploration enough to discover tactical threats the
-      early policy head may miss.  temp_step 12 keeps the first ~12 moves
-      stochastic for opening diversity, then switches to greedy play.
+      early policy head may miss.  temp_step 8 keeps only the early opening
+      stochastic, then switches to greedy play. dirichlet_epsilon 0.10 keeps
+      MCTS counts dominant so moves follow search values more closely.
 
     Network (conv_filters, residual_block_num)
       128 filters provide enough capacity for 15×15 local and medium-range
@@ -59,9 +60,13 @@ class GomokuConfig(AlphaZeroConfig):
     # tactical threats (open-4s, double-3s) that a weak early policy misses.
     c_puct: float = 1.5
 
-    # Stochastic move selection for the first 12 moves (~10–15% of game).
-    # Provides diverse openings for training without degrading mid-game play.
-    temp_step: int = 12
+    # Stochastic move selection for the first 8 moves only, then greedy play.
+    # This reduces random-looking placement while preserving opening variety.
+    temp_step: int = 8
+
+    # Reduce Dirichlet mixing so sampled actions track MCTS visit counts more
+    # closely (less random early placements).
+    dirichlet_epsilon: float = 0.10
 
     # -- Network architecture -----------------------------------------------
     # 128 filters keep inference/training cost manageable while still

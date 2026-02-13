@@ -4,6 +4,7 @@
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 from collections import deque
 
 import numpy
@@ -72,6 +73,62 @@ class TestRL(unittest.TestCase):
     def test_no_reverse_color_method(self):
         """reverse_color is no longer needed with canonical form."""
         self.assertFalse(hasattr(self.game, "reverse_color"))
+
+
+class _StubGame:
+    def __init__(self):
+        self.last_action = None
+
+    def get_initial_state(self):
+        return "", ChessType.BLACK
+
+    def get_canonical_form(self, board, player):
+        return numpy.zeros((1, 2, 2))
+
+    def next_state(self, board, action, player):
+        self.last_action = action
+        return "B[00]", ChessType.WHITE
+
+    def is_terminal_state(self, board, action, player):
+        return ChessType.BLACK
+
+    def compute_reward(self, winner, player):
+        return 1 if winner == player else -1
+
+
+class _StubMCTS:
+    def __init__(self, nnet, game, args):
+        pass
+
+    def simulate(self, board, player):
+        return numpy.array([0, 1]), numpy.array([10, 1])
+
+
+class TestRLMoveSelection(unittest.TestCase):
+    def test_after_temp_step_uses_greedy_mcts_move(self):
+        args = dotdict(
+            {
+                "rows": 1,
+                "columns": 2,
+                "temp_step": 0,
+                "dirichlet_alpha": 0.3,
+                "dirichlet_epsilon": 0.25,
+                "max_sample_pool_size": 10,
+                "sample_pool_file": os.path.join(tempfile.gettempdir(), "rl_stub.pkl"),
+            }
+        )
+        game = _StubGame()
+        rl = RL(nnet=None, game=game, args=args)
+
+        with patch("alphazero.rl.MCTS", _StubMCTS), patch(
+            "numpy.random.dirichlet", side_effect=AssertionError("dirichlet should not be called")
+        ), patch(
+            "numpy.random.choice", side_effect=AssertionError("choice should not be called")
+        ):
+            rl.play_against_itself()
+
+        self.assertEqual(game.last_action, 0)
+
 
 
 class TestRLSamplePool(unittest.TestCase):
