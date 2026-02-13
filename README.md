@@ -86,6 +86,7 @@ Defaults differ by preset and are defined in each config module:
 | `simulation_num` | 400 | 450 |
 | `c_puct` | 1.5 | 1.5 |
 | `temp_step` | 8 | 8 |
+| `dirichlet_alpha` | 0.3 | 0.05 |
 | `dirichlet_epsilon` | 0.25 | 0.10 |
 | `batch_size` | 512 | 512 |
 | `epochs` | 10 | 10 |
