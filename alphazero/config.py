@@ -28,6 +28,15 @@ class AlphaZeroConfig:
     # moves encourage exploration; later greedy moves improve play quality.
     temp_step: int = 2
 
+    # Dirichlet noise concentration parameter used for early self-play
+    # exploration. Lower values create spikier noise, higher values create
+    # flatter noise.
+    dirichlet_alpha: float = 0.3
+
+    # Mixing factor for blending MCTS policy with Dirichlet noise during the
+    # stochastic opening phase.
+    dirichlet_epsilon: float = 0.25
+
     # Mini-batch size for neural network training. Also used as the minimum
     # number of samples required in the pool before training starts.
     batch_size: int = 1024

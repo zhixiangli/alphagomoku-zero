@@ -83,9 +83,10 @@ Defaults differ by preset and are defined in each config module:
 |---|---:|---:|
 | `rows`, `columns` | 9, 9 | 15, 15 |
 | `n_in_row` | 5 | 5 |
-| `simulation_num` | 400 | 900 |
+| `simulation_num` | 400 | 450 |
 | `c_puct` | 1.5 | 1.5 |
-| `temp_step` | 8 | 12 |
+| `temp_step` | 8 | 8 |
+| `dirichlet_epsilon` | 0.25 | 0.10 |
 | `batch_size` | 512 | 512 |
 | `epochs` | 10 | 10 |
 | `train_interval` | 10 | 10 |

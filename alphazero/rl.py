@@ -47,12 +47,18 @@ class RL:
             players.append(player)
             policies.append(policy)
 
-            proba = 0.75 * pi + 0.25 * numpy.random.dirichlet(0.3 * numpy.ones(len(pi)))
-            action = (
-                actions[numpy.argmax(proba)]
-                if i >= self.args.temp_step
-                else numpy.random.choice(actions, p=proba)
-            )
+            if i >= self.args.temp_step:
+                # After the stochastic opening window, follow MCTS visit counts
+                # directly (greedy) to avoid noise-driven placements.
+                action = actions[numpy.argmax(pi)]
+            else:
+                dirichlet_noise = numpy.random.dirichlet(
+                    self.args.dirichlet_alpha * numpy.ones(len(pi))
+                )
+                proba = (1.0 - self.args.dirichlet_epsilon) * pi + (
+                    self.args.dirichlet_epsilon * dirichlet_noise
+                )
+                action = numpy.random.choice(actions, p=proba)
 
             next_board, next_player = self.game.next_state(board, action, player)
             winner = self.game.is_terminal_state(next_board, action, player)
