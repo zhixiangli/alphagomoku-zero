@@ -91,18 +91,18 @@ Defaults differ by preset and are defined in each config module:
 |---|---:|---:|---:|
 | `rows`, `columns` | 9, 9 | 15, 15 | 6, 7 |
 | `n_in_row` | 5 | 5 | 4 |
-| `simulation_num` | 400 | 450 | 400 |
+| `simulation_num` | 400 | 450 | 200 |
 | `c_puct` | 1.5 | 1.5 | 1.5 |
 | `temp_step` | 8 | 8 | 8 |
 | `dirichlet_alpha` | 0.3 | 0.05 | 0.3 |
 | `dirichlet_epsilon` | 0.25 | 0.10 | 0.25 |
-| `batch_size` | 512 | 512 | 512 |
+| `batch_size` | 512 | 512 | 128 |
 | `epochs` | 10 | 10 | 10 |
-| `train_interval` | 10 | 10 | 10 |
+| `train_interval` | 10 | 10 | 20 |
 | `lr` | 1e-3 | 1e-3 | 1e-3 |
-| `conv_filters` | 128 | 128 | 128 |
+| `conv_filters` | 128 | 128 | 64 |
 | `residual_block_num` | 4 | 6 | 4 |
-| `max_sample_pool_size` | 100000 | 200000 | 150000 |
+| `max_sample_pool_size` | 100000 | 200000 | 50000 |
 
 ## License
 
