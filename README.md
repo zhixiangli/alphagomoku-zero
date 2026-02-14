@@ -97,7 +97,7 @@ Defaults differ by preset and are defined in each config module:
 |---|---:|---:|---:|
 | `rows`, `columns` | 9, 9 | 15, 15 | 6, 7 |
 | `n_in_row` | 5 | 5 | 4 |
-| `simulation_num` | 400 | 450 | 200 |
+| `simulation_num` | 400 | 900 | 200 |
 | `c_puct` | 1.5 | 1.5 | 1.5 |
 | `temp_step` | 8 | 8 | 8 |
 | `dirichlet_alpha` | 0.3 | 0.05 | 0.3 |
