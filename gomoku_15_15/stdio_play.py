@@ -3,7 +3,7 @@
 
 """Play Gomoku (15x15) against a trained AlphaZero model via stdio."""
 
-from alphazero.gomoku_stdio import run_stdio_game
+from gomoku.stdio_play import run_stdio_game
 from gomoku_15_15.config import GomokuConfig
 from gomoku_15_15.game import ChessType, GomokuGame
 

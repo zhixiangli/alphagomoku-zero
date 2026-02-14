@@ -69,13 +69,19 @@ uv run python -m gomoku_9_9.stdio_play
 uv run python -m gomoku_15_15.stdio_play
 ```
 
-Optional flags (both commands):
+Connect4:
+
+```sh
+uv run python -m connect4.stdio_play
+```
+
+Optional flags (all commands):
 
 - `--human-color B|W` to choose who moves first
 - `--simulation-num N` to speed up/slow down AI thinking
 - `--checkpoint-path PATH_PREFIX` to load a different model prefix
 
-Move input uses column letters and row numbers, e.g. `E5` or `E 5`.
+Gomoku move input uses column letters and row numbers, e.g. `E5` or `E 5`. Connect4 move input uses a column number, e.g. `4`.
 
 Both trainers expose all config fields as CLI flags, so you can override defaults:
 
