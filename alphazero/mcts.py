@@ -18,7 +18,9 @@ class MCTS:
         self.total_visit_count = {}
         self.available_actions = {}
 
-    def simulate(self, board, player):
+    def simulate(self, board, player, add_root_noise=False):
+        if add_root_noise:
+            self.__add_root_dirichlet_noise(board, player)
         for _ in range(self.args.simulation_num):
             self.search(board, player)
         self.game.log_status(
@@ -28,6 +30,22 @@ class MCTS:
         )
         return numpy.copy(self.available_actions[board]), numpy.copy(
             self.visit_count[board]
+        )
+
+    def __add_root_dirichlet_noise(self, board, player):
+        if board not in self.prior_probability:
+            self.__expand(board, player)
+
+        priors = self.prior_probability[board]
+        if len(priors) == 0:
+            return
+
+        dirichlet_noise = numpy.random.dirichlet(
+            self.args.dirichlet_alpha * numpy.ones(len(priors))
+        )
+        self.prior_probability[board] = (
+            (1.0 - self.args.dirichlet_epsilon) * priors
+            + self.args.dirichlet_epsilon * dirichlet_noise
         )
 
     def search(self, board, player):

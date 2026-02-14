@@ -100,7 +100,16 @@ class _StubMCTS:
     def __init__(self, nnet, game, args):
         pass
 
-    def simulate(self, board, player):
+    def simulate(self, board, player, add_root_noise=False):
+        return numpy.array([0, 1]), numpy.array([10, 1])
+
+
+class _TrackingStubMCTS:
+    def __init__(self, nnet, game, args):
+        self.calls = []
+
+    def simulate(self, board, player, add_root_noise=False):
+        self.calls.append(add_root_noise)
         return numpy.array([0, 1]), numpy.array([10, 1])
 
 
@@ -128,6 +137,29 @@ class TestRLMoveSelection(unittest.TestCase):
             rl.play_against_itself()
 
         self.assertEqual(game.last_action, 0)
+
+    def test_before_temp_step_adds_dirichlet_to_root(self):
+        args = dotdict(
+            {
+                "rows": 1,
+                "columns": 2,
+                "temp_step": 1,
+                "dirichlet_alpha": 0.3,
+                "dirichlet_epsilon": 0.25,
+                "max_sample_pool_size": 10,
+                "sample_pool_file": os.path.join(tempfile.gettempdir(), "rl_stub_noise.pkl"),
+            }
+        )
+        game = _StubGame()
+        rl = RL(nnet=None, game=game, args=args)
+        mcts = _TrackingStubMCTS(nnet=None, game=game, args=args)
+
+        with patch("alphazero.rl.MCTS", return_value=mcts), patch(
+            "numpy.random.choice", return_value=0
+        ):
+            rl.play_against_itself()
+
+        self.assertEqual(mcts.calls, [True])
 
 
 
