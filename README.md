@@ -88,28 +88,3 @@ Both trainers expose all config fields as CLI flags, so you can override default
 ```sh
 uv run python -m gomoku_15_15.trainer -simulation_num 1200 -train_interval 20
 ```
-
-## Key Default Hyperparameters
-
-Defaults differ by preset and are defined in each config module:
-
-| Parameter | `gomoku_9_9` | `gomoku_15_15` | `connect4` |
-|---|---:|---:|---:|
-| `rows`, `columns` | 9, 9 | 15, 15 | 6, 7 |
-| `n_in_row` | 5 | 5 | 4 |
-| `simulation_num` | 400 | 900 | 200 |
-| `c_puct` | 1.5 | 1.5 | 1.5 |
-| `temp_step` | 8 | 8 | 8 |
-| `dirichlet_alpha` | 0.3 | 0.05 | 0.3 |
-| `dirichlet_epsilon` | 0.25 | 0.10 | 0.25 |
-| `batch_size` | 512 | 512 | 128 |
-| `epochs` | 10 | 10 | 10 |
-| `train_interval` | 10 | 10 | 20 |
-| `lr` | 1e-3 | 1e-3 | 1e-3 |
-| `conv_filters` | 128 | 128 | 64 |
-| `residual_block_num` | 4 | 6 | 4 |
-| `max_sample_pool_size` | 100000 | 200000 | 50000 |
-
-## License
-
-[Apache License 2.0](LICENSE)
