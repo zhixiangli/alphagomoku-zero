@@ -1,61 +1,21 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-"""Shared stdio runner for human-vs-AI Gomoku play."""
+"""Generic stdio runner for human-vs-AI board games."""
 
 import argparse
 import logging
-import re
 
 import numpy
 
 from alphazero.mcts import MCTS
 from alphazero.nnet import AlphaZeroNNet
 
-_COLUMN_LABELS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-
-def _column_label(index):
-    return _COLUMN_LABELS[index]
-
-
-def _format_action(game, action):
-    row, col = divmod(action, game.args.columns)
-    return f"{_column_label(col)}{row + 1}"
-
-
-def _parse_move(text, rows, columns):
-    normalized = text.strip().upper()
-
-    if re.fullmatch(r"[A-Z]\d+", normalized):
-        col = ord(normalized[0]) - ord("A")
-        row = int(normalized[1:]) - 1
-        if 0 <= row < rows and 0 <= col < columns:
-            return row * columns + col
-
-    parts = normalized.split()
-    if (
-        len(parts) == 2
-        and len(parts[0]) == 1
-        and parts[0].isalpha()
-        and parts[1].isdigit()
-    ):
-        col = ord(parts[0]) - ord("A")
-        row = int(parts[1]) - 1
-        if 0 <= row < rows and 0 <= col < columns:
-            return row * columns + col
-
-    return None
-
-
-def _print_board(game, board):
-    matrix = game.to_board(board)
-    col_header = "   " + " ".join(_column_label(i) for i in range(game.args.columns))
-    print("\n" + col_header)
-    for i in range(game.args.rows):
-        row_label = f"{i + 1:>2}"
-        print(f"{row_label} " + " ".join(matrix[i]))
-    print()
+def _resolve_direct_action(parsed, available_actions):
+    if parsed is None or parsed not in available_actions:
+        return None
+    return parsed
 
 
 def _pick_ai_action(mcts, board, player):
@@ -89,9 +49,22 @@ def build_args_parser(description, default_checkpoint_path, chess_type):
     return parser
 
 
-def run_stdio_game(config_class, game_class, chess_type, title):
+def run_stdio_game(
+    *,
+    config_class,
+    game_class,
+    chess_type,
+    title,
+    description,
+    parse_move,
+    format_action,
+    print_board,
+    help_message,
+    invalid_move_message,
+    resolve_action=None,
+):
     parser = build_args_parser(
-        description=f"Play {config_class.rows}x{config_class.columns} Gomoku against a trained model",
+        description=description,
         default_checkpoint_path=config_class.save_checkpoint_path,
         chess_type=chess_type,
     )
@@ -112,13 +85,15 @@ def run_stdio_game(config_class, game_class, chess_type, title):
     human = cli_args.human_color
     ai = game.next_player(human)
 
-    max_col = _column_label(config.columns - 1)
+    if resolve_action is None:
+        resolve_action = _resolve_direct_action
+
     print(f"Welcome to {title} 👋")
-    print("Play with A1 or 'A 1' (example: E5).")
+    print(help_message)
     print("Type 'help' for tips, 'quit' to leave.\n")
 
     while True:
-        _print_board(game, board)
+        print_board(game, board)
 
         if player == human:
             raw = input(f"Your move ({human}): ").strip()
@@ -126,21 +101,19 @@ def run_stdio_game(config_class, game_class, chess_type, title):
                 print("Goodbye!")
                 break
             if raw.lower() in {"help", "h", "?"}:
-                print(
-                    f"Try A1..{max_col}{config.rows} (or A 1). "
-                    f"Columns A-{max_col}, rows 1-{config.rows}."
-                )
+                print(help_message)
                 continue
 
-            action = _parse_move(raw, config.rows, config.columns)
+            parsed = parse_move(raw, config.rows, config.columns)
             available = game.available_actions(board)
-            if action is None or action not in available:
-                print("That move doesn't work. Pick an empty spot on the board.")
+            action = resolve_action(parsed, available)
+            if action is None:
+                print(invalid_move_message)
                 continue
 
             board, next_player = game.next_state(board, action, player)
             winner = game.is_terminal_state(board, action, player)
-            print(f"Nice move: {_format_action(game, action)}")
+            print(f"Nice move: {format_action(game, action)}")
         else:
             print("AI is thinking…")
             action = _pick_ai_action(mcts, board, player)
@@ -149,10 +122,10 @@ def run_stdio_game(config_class, game_class, chess_type, title):
                 break
             board, next_player = game.next_state(board, action, player)
             winner = game.is_terminal_state(board, action, player)
-            print(f"AI ({ai}) plays {_format_action(game, action)}")
+            print(f"AI ({ai}) plays {format_action(game, action)}")
 
         if winner is not None:
-            _print_board(game, board)
+            print_board(game, board)
             if winner == human:
                 print("You win! 🎉")
             elif winner == ai:
