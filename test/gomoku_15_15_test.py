@@ -239,6 +239,7 @@ class TestGomoku15x15Config(unittest.TestCase):
         self.assertEqual(config.columns, 15)
         self.assertEqual(config.n_in_row, 5)
         self.assertEqual(config.action_space_size, 225)
+        self.assertEqual(config.simulation_num, 900)
         self.assertEqual(config.temp_step, 8)
         self.assertEqual(config.dirichlet_alpha, 0.05)
         self.assertEqual(config.dirichlet_epsilon, 0.10)
