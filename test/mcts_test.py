@@ -132,6 +132,34 @@ class TestMCTSCaching(unittest.TestCase):
         self.assertGreater(terminal_count, 0)
 
 
+class TestMCTSRootDirichletNoise(unittest.TestCase):
+    def setUp(self):
+        self.game = SimpleBoardGame()
+        self.nnet = UniformNNet()
+        self.args = dotdict(
+            {
+                "simulation_num": 1,
+                "c_puct": 5,
+                "dirichlet_alpha": 0.3,
+                "dirichlet_epsilon": 0.25,
+            }
+        )
+
+    def test_adds_noise_to_root_priors_when_requested(self):
+        mcts = MCTS(self.nnet, self.game, self.args)
+        board, player = self.game.get_initial_state()
+
+        with unittest.mock.patch(
+            "numpy.random.dirichlet", return_value=numpy.array([0.7, 0.2, 0.1])
+        ):
+            mcts.simulate(board, player, add_root_noise=True)
+
+        expected = (1.0 - self.args.dirichlet_epsilon) * (numpy.ones(3) / 3.0) + (
+            self.args.dirichlet_epsilon * numpy.array([0.7, 0.2, 0.1])
+        )
+        numpy.testing.assert_allclose(mcts.prior_probability[board], expected)
+
+
 class TestMCTSSearch(unittest.TestCase):
     def setUp(self):
         self.game = SimpleBoardGame()

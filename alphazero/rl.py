@@ -39,7 +39,9 @@ class RL:
         mcts = MCTS(self.nnet, self.game, self.args)
         max_moves = self.args.rows * self.args.columns
         for i in itertools.count():
-            actions, counts = mcts.simulate(board, player)
+            actions, counts = mcts.simulate(
+                board, player, add_root_noise=i < self.args.temp_step
+            )
             pi = counts / numpy.sum(counts)
             policy = numpy.zeros(self.args.rows * self.args.columns)
             policy[actions] = pi
@@ -52,13 +54,7 @@ class RL:
                 # directly (greedy) to avoid noise-driven placements.
                 action = actions[numpy.argmax(pi)]
             else:
-                dirichlet_noise = numpy.random.dirichlet(
-                    self.args.dirichlet_alpha * numpy.ones(len(pi))
-                )
-                proba = (1.0 - self.args.dirichlet_epsilon) * pi + (
-                    self.args.dirichlet_epsilon * dirichlet_noise
-                )
-                action = numpy.random.choice(actions, p=proba)
+                action = numpy.random.choice(actions, p=pi)
 
             next_board, next_player = self.game.next_state(board, action, player)
             winner = self.game.is_terminal_state(next_board, action, player)
