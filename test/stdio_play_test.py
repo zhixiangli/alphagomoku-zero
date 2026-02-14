@@ -3,7 +3,7 @@
 
 import unittest
 
-from gomoku.stdio_play import _parse_move
+from gomoku_15_15.stdio_play import _parse_move
 from connect4.stdio_play import (
     _parse_move as _parse_connect4_move,
     _resolve_action as _resolve_connect4_action,
