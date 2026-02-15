@@ -33,8 +33,8 @@ class GomokuConfig(AlphaZeroConfig):
       span wider areas on the larger board.
 
     Training (batch_size, epochs, train_interval, lr)
-      512 batch size allows earlier training updates while still giving stable
-      gradient estimates.  5 epochs strike a faster train/eval cadence while
+      4096 batch size emphasizes stability for updates on the larger board
+      by using very large gradient estimates.  5 epochs strike a faster train/eval cadence while
       buffer is still small.  Training every 10 games balances feedback
       speed with sufficient data collection.  lr 1e-3 with Adam is
       conservative, reducing the risk of policy collapse.
@@ -82,9 +82,9 @@ class GomokuConfig(AlphaZeroConfig):
     residual_block_num: int = 6
 
     # -- Training -------------------------------------------------------------
-    # 512 batch size enables earlier updates while remaining large enough
-    # for stable optimization on augmented self-play samples.
-    batch_size: int = 512
+    # 4096 batch size prioritizes stable optimization on augmented self-play
+    # samples.
+    batch_size: int = 4096
 
     # 5 epochs speed up update cycles while keeping optimization stable.
     epochs: int = 5
