@@ -23,7 +23,7 @@ class Connect4Config(AlphaZeroConfig):
     conv_filters: int = 64
     residual_block_num: int = 4
 
-    batch_size: int = 128
+    batch_size: int = 256
     epochs: int = 5
     train_interval: int = 10
     lr: float = 1e-3

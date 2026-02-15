@@ -107,6 +107,7 @@ class TestConnect4ModuleIntegration(unittest.TestCase):
         self.assertIsInstance(config, Connect4Config)
         self.assertEqual(config.rows, 6)
         self.assertEqual(config.columns, 7)
+        self.assertEqual(config.batch_size, 256)
 
 
 if __name__ == "__main__":
