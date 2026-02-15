@@ -18,22 +18,25 @@ class GomokuConfig(AlphaZeroConfig):
       9×9 keeps the action space small (81 cells) while retaining genuine
       Gomoku tactics (open-3s, open-4s, double-threat patterns).
 
-    MCTS (simulation_num, c_puct, temp_step)
+    MCTS (simulation_num, c_puct, temp_step, dirichlet_alpha, dirichlet_epsilon)
       400 simulations keep per-move search robust on a compact 9×9 board
       while maintaining substantially faster self-play iteration than 15×15.
       c_puct 1.5 boosts exploration enough to discover tactical threats the
       early policy head may miss.  temp_step 8 keeps the first ~20 % of moves
       stochastic for opening diversity, then switches to greedy play.
+      dirichlet_alpha 0.2 and epsilon 0.25 inject controlled opening noise
+      while still letting MCTS visit counts dominate action selection.
 
     Network (conv_filters, residual_block_num)
-      128 filters (vs 256) halve parameter count and inference time while still
-      capturing 9×9 patterns.  4 residual blocks (vs 2) add the depth needed
-      for multi-step threat detection without excessive cost.
+      64 filters (vs 256) greatly reduce parameter count and inference time
+      while still capturing 9×9 patterns.  4 residual blocks (vs 2) add the
+      depth needed for multi-step threat detection without excessive cost.
 
     Training (batch_size, epochs, train_interval, lr)
-      512 batch size lets training start after only 2 self-play games (with 8×
-      augmentation).  10 epochs reduce overfitting risk when the replay buffer
-      is still small.  Training every 10 games (vs 20) gives faster feedback.
+      256 batch size lets training start sooner from fresh self-play data
+      (with 8× augmentation).  5 epochs keep each update lighter while still
+      refining policy/value heads.  Training every 10 games (vs 20) gives
+      faster feedback.
       lr 1e-3 with Adam is more conservative than 5e-3, reducing the risk of
       policy collapse.
 
@@ -63,10 +66,19 @@ class GomokuConfig(AlphaZeroConfig):
     # Provides diverse openings for training without degrading mid-game play.
     temp_step: int = 8
 
+    # -- Opening exploration noise ------------------------------------------
+    # Lower concentration gives spikier opening noise while keeping
+    # game-specific tuning isolated to 9×9 Gomoku.
+    dirichlet_alpha: float = 0.2
+
+    # Reduce Dirichlet mixing so sampled actions track MCTS visit counts more
+    # closely (less random early placements).
+    dirichlet_epsilon: float = 0.25
+
     # -- Network architecture -----------------------------------------------
-    # 128 filters are sufficient for 9×9 patterns and halve the parameter
-    # count vs 256, speeding up both training and MCTS inference.
-    conv_filters: int = 128
+    # 64 filters are sufficient for 9×9 patterns and significantly reduce
+    # compute vs 128, speeding up both training and MCTS inference.
+    conv_filters: int = 64
 
     # 4 residual blocks give the depth needed for multi-step tactical
     # patterns (ladders, forks) without excessive compute on a 9×9 board.
@@ -75,10 +87,10 @@ class GomokuConfig(AlphaZeroConfig):
     # -- Training -------------------------------------------------------------
     # Smaller batches allow earlier training updates while keeping gradient
     # estimates stable with augmented self-play samples.
-    batch_size: int = 512
+    batch_size: int = 256
 
-    # 10 epochs reduce overfitting risk when the replay buffer is small.
-    epochs: int = 10
+    # 5 epochs keep updates fast while still improving on each train step.
+    epochs: int = 5
 
     # Train every 10 self-play games for tighter feedback loops.
     train_interval: int = 10

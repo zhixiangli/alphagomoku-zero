@@ -34,7 +34,7 @@ class GomokuConfig(AlphaZeroConfig):
 
     Training (batch_size, epochs, train_interval, lr)
       512 batch size allows earlier training updates while still giving stable
-      gradient estimates.  10 epochs reduce overfitting risk when the replay
+      gradient estimates.  5 epochs strike a faster train/eval cadence while
       buffer is still small.  Training every 10 games balances feedback
       speed with sufficient data collection.  lr 1e-3 with Adam is
       conservative, reducing the risk of policy collapse.
@@ -73,9 +73,9 @@ class GomokuConfig(AlphaZeroConfig):
     dirichlet_epsilon: float = 0.10
 
     # -- Network architecture -----------------------------------------------
-    # 128 filters keep inference/training cost manageable while still
-    # modeling useful local and medium-range patterns on a 15×15 board.
-    conv_filters: int = 128
+    # 64 filters reduce training/inference cost while still capturing
+    # useful local and medium-range patterns on a 15×15 board.
+    conv_filters: int = 64
 
     # 6 residual blocks give the depth needed for multi-step tactical
     # patterns (ladders, forks, double threats) on a 15×15 board.
@@ -86,8 +86,8 @@ class GomokuConfig(AlphaZeroConfig):
     # for stable optimization on augmented self-play samples.
     batch_size: int = 512
 
-    # 10 epochs reduce overfitting risk when the replay buffer is small.
-    epochs: int = 10
+    # 5 epochs speed up update cycles while keeping optimization stable.
+    epochs: int = 5
 
     # Train every 10 self-play games for balanced feedback loops.
     train_interval: int = 10
