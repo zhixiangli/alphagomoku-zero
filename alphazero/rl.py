@@ -76,7 +76,11 @@ class RL:
             samples = self.play_against_itself()
             augmented_data = self.game.augment_samples(samples)
             self.sample_pool.extend(augmented_data)
-            logging.info("current sample pool size: %d", len(self.sample_pool))
+            logging.info(
+                "augmented_data len: %d, current sample pool size: %d",
+                len(augmented_data),
+                len(self.sample_pool),
+            )
             if (
                 self.args.batch_size <= len(self.sample_pool)
                 and (i + 1) % self.args.train_interval == 0
