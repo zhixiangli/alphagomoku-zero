@@ -243,7 +243,7 @@ class TestGomoku15x15Config(unittest.TestCase):
         self.assertEqual(config.temp_step, 8)
         self.assertEqual(config.dirichlet_alpha, 0.05)
         self.assertEqual(config.dirichlet_epsilon, 0.10)
-        self.assertEqual(config.batch_size, 4096)
+        self.assertEqual(config.batch_size, 2048)
 
     def test_config_paths(self):
         from gomoku_15_15.config import GomokuConfig
