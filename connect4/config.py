@@ -24,8 +24,8 @@ class Connect4Config(AlphaZeroConfig):
     residual_block_num: int = 4
 
     batch_size: int = 128
-    epochs: int = 10
-    train_interval: int = 20
+    epochs: int = 5
+    train_interval: int = 10
     lr: float = 1e-3
     max_sample_pool_size: int = 50000
 
