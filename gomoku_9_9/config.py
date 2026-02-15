@@ -33,7 +33,7 @@ class GomokuConfig(AlphaZeroConfig):
       depth needed for multi-step threat detection without excessive cost.
 
     Training (batch_size, epochs, train_interval, lr)
-      2048 batch size gives larger, more stable gradient estimates from self-play data
+      1024 batch size gives larger, more stable gradient estimates from self-play data
       (with 8× augmentation).  5 epochs keep each update lighter while still
       refining policy/value heads.  Training every 10 games (vs 20) gives
       faster feedback.
@@ -87,7 +87,7 @@ class GomokuConfig(AlphaZeroConfig):
     # -- Training -------------------------------------------------------------
     # Larger batches prioritize stable optimization with augmented self-play
     # samples at the cost of less frequent updates.
-    batch_size: int = 2048
+    batch_size: int = 1024
 
     # 5 epochs keep updates fast while still improving on each train step.
     epochs: int = 5
