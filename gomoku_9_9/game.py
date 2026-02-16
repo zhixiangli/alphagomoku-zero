@@ -24,6 +24,14 @@ class GomokuGame(Game):
         self._rows = args.rows
         self._n = args.n_in_row
 
+    @property
+    def rows(self):
+        return self._rows
+
+    @property
+    def columns(self):
+        return self._cols
+
     def next_player(self, player):
         assert player != ChessType.EMPTY
         return ChessType.BLACK if player == ChessType.WHITE else ChessType.WHITE
