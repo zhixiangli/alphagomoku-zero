@@ -39,7 +39,10 @@ alphazero/            Core AlphaZero components (game API, MCTS, network, RL loo
 gomoku_9_9/           9×9 Gomoku preset (config + trainer + stdio player + checkpoint)
 gomoku_15_15/         15×15 Gomoku preset (config + trainer + stdio player + checkpoint)
 connect4/             Connect Four preset (config + trainer + stdio player + checkpoint)
-test/                 Unit tests
+alphazero/tests/      Core AlphaZero tests (MCTS, RL loop, trainer contracts)
+gomoku_9_9/tests/     Gomoku 9×9 game and integration tests
+gomoku_15_15/tests/   Gomoku 15×15 game and integration tests
+connect4/tests/       Connect4 game and integration tests
 ```
 
 ---
@@ -140,8 +143,32 @@ Checkpoints are saved as timestamped files (e.g. `model.1771199700735.pt`) and a
 
 ## Run tests
 
+This project uses **pytest** with markers to separate fast checks from heavier integration/training checks.
+
+### Run the full suite
+
 ```bash
-uv run python -m unittest discover -s test -p '*_test.py'
+uv run pytest
+```
+
+### Fast feedback loop (unit + integration, skip slow)
+
+```bash
+uv run pytest -m "not slow"
+```
+
+### Only slow tests (training/checkpoint related)
+
+```bash
+uv run pytest -m slow
+```
+
+### Target a specific game package
+
+```bash
+uv run pytest connect4/tests
+uv run pytest gomoku_9_9/tests
+uv run pytest gomoku_15_15/tests
 ```
 
 ---

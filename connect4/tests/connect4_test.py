@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
-import unittest
-from unittest.mock import patch
-
 import numpy
-from dotdict import dotdict
+import pytest
+from unittest.mock import patch
 
 from alphazero.game import Game
 from alphazero.module import AlphaZeroModule
@@ -15,100 +13,95 @@ from connect4.config import Connect4Config
 from connect4.game import Connect4Game, ChessType
 
 
-class TestConnect4Game(unittest.TestCase):
-    def setUp(self):
-        self.args = dotdict(
-            {
-                "rows": 6,
-                "columns": 7,
-                "n_in_row": 4,
-                "conv_filters": 16,
-                "conv_kernel": (3, 3),
-                "residual_block_num": 2,
-                "save_checkpoint_path": "./tmp",
-                "max_sample_pool_size": 10000,
-                "l2": 1e-4,
-                "lr": 1e-3,
-                "sample_pool_file": "./tmp",
-            }
-        )
-        self.game = Connect4Game(self.args)
-
-    def test_drop_gravity_in_same_column(self):
-        board, player = self.game.get_initial_state()
-
-        board, player = self.game.next_state(board, 0, player)
-        self.assertEqual(board, "B[50]")
-
-        board, player = self.game.next_state(board, 0, player)
-        self.assertEqual(board, "B[50];W[40]")
-
-    def test_available_actions_one_per_column(self):
-        actions = self.game.available_actions("")
-        self.assertEqual(actions, [35, 36, 37, 38, 39, 40, 41])
-
-    def test_available_actions_after_partial_fill(self):
-        board = "B[50];W[40];B[30]"
-        actions = self.game.available_actions(board)
-        self.assertEqual(actions[0], 14)
-
-    def test_terminal_vertical(self):
-        board = "B[50];B[40];B[30];B[20]"
-        self.assertEqual(self.game.is_terminal_state(board, 14, ChessType.BLACK), "B")
-
-    def test_terminal_horizontal(self):
-        board = "B[50];B[51];B[52];B[53]"
-        self.assertEqual(self.game.is_terminal_state(board, 38, ChessType.BLACK), "B")
-
-    def test_terminal_diagonal(self):
-        board = "B[50];B[41];B[32];B[23]"
-        self.assertEqual(self.game.is_terminal_state(board, 17, ChessType.BLACK), "B")
-
-    def test_draw(self):
-        args = dotdict({"rows": 2, "columns": 2, "n_in_row": 3})
-        game = Connect4Game(args)
-        board = "B[10];W[11];B[00];W[01]"
-        self.assertEqual(game.is_terminal_state(board, 1, ChessType.WHITE), Game.DRAW)
-
-    def test_get_canonical_form(self):
-        board = "B[50];W[51];B[41]"
-        canonical = self.game.get_canonical_form(board, ChessType.WHITE)
-        self.assertEqual(canonical[5, 1, 0], 1)
-        self.assertEqual(canonical[5, 0, 1], 1)
-        self.assertEqual(canonical[4, 1, 1], 1)
-
-    def test_augment_samples(self):
-        board = numpy.zeros((6, 7, 2))
-        board[5, 0, 0] = 1
-        policy = numpy.zeros(42)
-        policy[35] = 1
-        augmented = self.game.augment_samples([(board, policy, 1)])
-        self.assertEqual(len(augmented), 2)
-        _, flipped_policy, _ = augmented[1]
-        self.assertEqual(flipped_policy[41], 1)
+@pytest.fixture
+def connect4_game(make_args):
+    return Connect4Game(make_args(rows=6, columns=7, n_in_row=4))
 
 
-class TestConnect4ModuleIntegration(unittest.TestCase):
-    def test_configure_module_registers_connect4(self):
-        module = AlphaZeroModule()
-        configure_module(module)
-        self.assertIs(module.resolve_nnet_class(Connect4Game), AlphaZeroNNet)
+@pytest.mark.unit
+def test_drop_gravity_in_same_column(connect4_game):
+    board, player = connect4_game.get_initial_state()
+    board, player = connect4_game.next_state(board, 0, player)
+    assert board == "B[50]", "First token in a column should land on bottom row"
 
-    @patch("connect4.trainer.run_training")
-    @patch("connect4.trainer.setup_logging")
-    def test_trainer_main_wires(self, _mock_logging, mock_run):
+    board, _ = connect4_game.next_state(board, 0, player)
+    assert board == "B[50];W[40]", "Second token in same column should stack upward"
+
+
+@pytest.mark.unit
+def test_available_actions_return_top_slot_per_column(connect4_game):
+    assert connect4_game.available_actions("") == [35, 36, 37, 38, 39, 40, 41]
+
+
+@pytest.mark.unit
+def test_available_actions_update_after_partial_fill(connect4_game):
+    actions = connect4_game.available_actions("B[50];W[40];B[30]")
+    assert actions[0] == 14, "Column 0 should now expose row 2 as the legal action"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "board,action",
+    [
+        ("B[50];B[40];B[30];B[20]", 14),
+        ("B[50];B[51];B[52];B[53]", 38),
+        ("B[50];B[41];B[32];B[23]", 17),
+    ],
+    ids=["vertical", "horizontal", "diagonal"],
+)
+def test_terminal_win_patterns_are_detected(connect4_game, board, action):
+    winner = connect4_game.is_terminal_state(board, action, ChessType.BLACK)
+    assert winner == ChessType.BLACK
+
+
+@pytest.mark.unit
+def test_draw_when_board_is_full_without_winner(make_args):
+    game = Connect4Game(make_args(rows=2, columns=2, n_in_row=3))
+    board = "B[10];W[11];B[00];W[01]"
+    assert game.is_terminal_state(board, 1, ChessType.WHITE) == Game.DRAW
+
+
+@pytest.mark.unit
+def test_canonical_form_swaps_current_and_opponent_channels(connect4_game):
+    canonical = connect4_game.get_canonical_form("B[50];W[51];B[41]", ChessType.WHITE)
+    assert canonical[5, 1, 0] == 1
+    assert canonical[5, 0, 1] == 1
+    assert canonical[4, 1, 1] == 1
+
+
+@pytest.mark.unit
+def test_augment_samples_mirrors_policy_probabilities(connect4_game):
+    board = numpy.zeros((6, 7, 2))
+    board[5, 0, 0] = 1
+    policy = numpy.zeros(42)
+    policy[35] = 1
+
+    augmented = connect4_game.augment_samples([(board, policy, 1)])
+    assert len(augmented) == 2
+    _, flipped_policy, _ = augmented[1]
+    assert flipped_policy[41] == 1, "Mirrored move should map from col=0 to col=6"
+
+
+@pytest.mark.integration
+def test_configure_module_registers_connect4_nnet():
+    module = AlphaZeroModule()
+    configure_module(module)
+    assert module.resolve_nnet_class(Connect4Game) is AlphaZeroNNet
+
+
+@pytest.mark.integration
+def test_trainer_main_wires_cli_config():
+    with patch("connect4.trainer.run_training") as mock_run, patch(
+        "connect4.trainer.setup_logging"
+    ), patch("sys.argv", ["trainer", "-rows", "6", "-columns", "7"]):
         from connect4.trainer import main
 
-        with patch("sys.argv", ["trainer", "-rows", "6", "-columns", "7"]):
-            main()
-        self.assertEqual(mock_run.call_count, 1)
-        args, _ = mock_run.call_args
-        config = args[2]
-        self.assertIsInstance(config, Connect4Config)
-        self.assertEqual(config.rows, 6)
-        self.assertEqual(config.columns, 7)
-        self.assertEqual(config.batch_size, 256)
+        main()
 
-
-if __name__ == "__main__":
-    unittest.main()
+    assert mock_run.call_count == 1
+    args, _ = mock_run.call_args
+    config = args[2]
+    assert isinstance(config, Connect4Config)
+    assert config.rows == 6
+    assert config.columns == 7
+    assert config.batch_size == 256

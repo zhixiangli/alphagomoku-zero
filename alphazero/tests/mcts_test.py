@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 #  -*- coding: utf-8 -*-
 
-"""Tests for alphazero/mcts.py - Monte Carlo Tree Search."""
-
-import unittest
+"""Behavioral tests for Monte Carlo Tree Search contracts."""
 
 import numpy
+import pytest
 from dotdict import dotdict
 
 from alphazero.game import Game
@@ -20,19 +19,18 @@ class _ChessType:
 
 
 class SimpleBoardGame(Game):
-    """Minimal 1×3 board game: two adjacent same-colour stones win."""
+    """Minimal 1x3 board game where adjacent same-color stones win."""
 
-    def __init__(self):
-        self.rows = 1
-        self.columns = 3
+    rows = 1
+    columns = 3
 
     def next_player(self, player):
         return _ChessType.BLACK if player == _ChessType.WHITE else _ChessType.WHITE
 
     def next_state(self, board, action, player):
-        tmp = list(board)
-        tmp[action] = player
-        return "".join(tmp), self.next_player(player)
+        stones = list(board)
+        stones[action] = player
+        return "".join(stones), self.next_player(player)
 
     def is_terminal_state(self, board, action, player):
         if action > 0 and board[action - 1] == board[action]:
@@ -47,10 +45,10 @@ class SimpleBoardGame(Game):
         return _ChessType.EMPTY * 3, _ChessType.BLACK
 
     def available_actions(self, board):
-        return [i for i in range(len(board)) if board[i] == _ChessType.EMPTY]
+        return [i for i, stone in enumerate(board) if stone == _ChessType.EMPTY]
 
     def log_status(self, board, counts, actions):
-        pass
+        return None
 
     def get_canonical_form(self, board, player):
         if player == _ChessType.BLACK:
@@ -62,152 +60,104 @@ class SimpleBoardGame(Game):
 
 
 class UniformNNet(NNet):
-    """Returns uniform priors and zero value."""
-
     def predict(self, board):
         return numpy.ones(3), 0
 
 
-class TestMCTSSimulate(unittest.TestCase):
-    def setUp(self):
-        self.game = SimpleBoardGame()
-        self.nnet = UniformNNet()
-        self.args = dotdict({"simulation_num": 100, "c_puct": 5})
-
-    def test_simulate_returns_actions_and_counts(self):
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        actions, counts = mcts.simulate(board, player)
-        self.assertEqual(len(actions), len(counts))
-        self.assertGreater(len(actions), 0)
-
-    def test_simulate_total_visits_equal_simulation_num(self):
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        actions, counts = mcts.simulate(board, player)
-        # Total visit count at root = simulation_num + 1 (initial expand counts as 1)
-        # But the counts returned are the children's visit counts
-        self.assertEqual(int(numpy.sum(counts)), self.args.simulation_num - 1)
-
-    def test_center_move_preferred(self):
-        """On a 1x3 board, center move should be visited most (strategic value)."""
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        actions, counts = mcts.simulate(board, player)
-        center_idx = list(actions).index(1)
-        self.assertEqual(int(numpy.argmax(counts)), center_idx)
-
-    def test_edge_moves_symmetric(self):
-        """Edge moves (0 and 2) should have roughly equal visit counts."""
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        actions, counts = mcts.simulate(board, player)
-        action_list = list(actions)
-        idx_0 = action_list.index(0)
-        idx_2 = action_list.index(2)
-        self.assertEqual(int(counts[idx_0]), int(counts[idx_2]))
+@pytest.fixture
+def tiny_game():
+    return SimpleBoardGame()
 
 
-class TestMCTSCaching(unittest.TestCase):
-    def setUp(self):
-        self.game = SimpleBoardGame()
-        self.nnet = UniformNNet()
-        self.args = dotdict({"simulation_num": 50, "c_puct": 5})
-
-    def test_states_are_cached(self):
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        mcts.simulate(board, player)
-        # Root should be in prior_probability cache
-        self.assertIn(board, mcts.prior_probability)
-        self.assertIn(board, mcts.visit_count)
-        self.assertIn(board, mcts.mean_action_value)
-
-    def test_terminal_states_cached(self):
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        mcts.simulate(board, player)
-        # Some terminal states should have been found
-        terminal_count = sum(1 for v in mcts.terminal_state.values() if v is not None)
-        self.assertGreater(terminal_count, 0)
+@pytest.fixture
+def uniform_nnet():
+    return UniformNNet()
 
 
-class TestMCTSRootDirichletNoise(unittest.TestCase):
-    def setUp(self):
-        self.game = SimpleBoardGame()
-        self.nnet = UniformNNet()
-        self.args = dotdict(
-            {
-                "simulation_num": 1,
-                "c_puct": 5,
-                "dirichlet_alpha": 0.3,
-                "dirichlet_epsilon": 0.25,
-            }
-        )
-
-    def test_adds_noise_to_root_priors_when_requested(self):
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-
-        with unittest.mock.patch(
-            "numpy.random.dirichlet", return_value=numpy.array([0.7, 0.2, 0.1])
-        ):
-            mcts.simulate(board, player, add_root_noise=True)
-
-        expected = (1.0 - self.args.dirichlet_epsilon) * (numpy.ones(3) / 3.0) + (
-            self.args.dirichlet_epsilon * numpy.array([0.7, 0.2, 0.1])
-        )
-        numpy.testing.assert_allclose(mcts.prior_probability[board], expected)
+@pytest.fixture
+def mcts_args():
+    return dotdict({"simulation_num": 100, "c_puct": 5})
 
 
-class TestMCTSSearch(unittest.TestCase):
-    def setUp(self):
-        self.game = SimpleBoardGame()
-        self.nnet = UniformNNet()
-        self.args = dotdict({"simulation_num": 10, "c_puct": 5})
+@pytest.mark.unit
+def test_simulate_returns_aligned_actions_and_counts(tiny_game, uniform_nnet, mcts_args):
+    actions, counts = MCTS(uniform_nnet, tiny_game, mcts_args).simulate(*tiny_game.get_initial_state())
+    assert len(actions) == len(counts)
+    assert len(actions) > 0
 
-    def test_search_initializes_leaf(self):
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        # First search should expand the root
+
+@pytest.mark.unit
+def test_simulate_distributes_all_visits_across_children(tiny_game, uniform_nnet, mcts_args):
+    _, counts = MCTS(uniform_nnet, tiny_game, mcts_args).simulate(*tiny_game.get_initial_state())
+    assert int(numpy.sum(counts)) == mcts_args.simulation_num - 1
+
+
+@pytest.mark.unit
+def test_simulate_prefers_center_and_keeps_symmetric_edges(tiny_game, uniform_nnet, mcts_args):
+    actions, counts = MCTS(uniform_nnet, tiny_game, mcts_args).simulate(*tiny_game.get_initial_state())
+    action_list = list(actions)
+
+    center_index = action_list.index(1)
+    assert int(numpy.argmax(counts)) == center_index, "Center move should be most visited on symmetric board"
+
+    left_index = action_list.index(0)
+    right_index = action_list.index(2)
+    assert int(counts[left_index]) == int(counts[right_index]), "Symmetric edge moves should receive equal visits"
+
+
+@pytest.mark.unit
+def test_simulate_caches_expanded_states_and_terminal_outcomes(tiny_game, uniform_nnet):
+    mcts = MCTS(uniform_nnet, tiny_game, dotdict({"simulation_num": 50, "c_puct": 5}))
+    board, player = tiny_game.get_initial_state()
+    mcts.simulate(board, player)
+
+    assert board in mcts.prior_probability
+    assert board in mcts.visit_count
+    assert board in mcts.mean_action_value
+    assert sum(1 for outcome in mcts.terminal_state.values() if outcome is not None) > 0
+
+
+@pytest.mark.unit
+def test_simulate_applies_dirichlet_noise_to_root_when_enabled(tiny_game, uniform_nnet):
+    args = dotdict(
+        {
+            "simulation_num": 1,
+            "c_puct": 5,
+            "dirichlet_alpha": 0.3,
+            "dirichlet_epsilon": 0.25,
+        }
+    )
+    mcts = MCTS(uniform_nnet, tiny_game, args)
+    board, player = tiny_game.get_initial_state()
+
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr("numpy.random.dirichlet", lambda *_: numpy.array([0.7, 0.2, 0.1]))
+        mcts.simulate(board, player, add_root_noise=True)
+
+    expected = (1.0 - args.dirichlet_epsilon) * (numpy.ones(3) / 3.0) + (
+        args.dirichlet_epsilon * numpy.array([0.7, 0.2, 0.1])
+    )
+    numpy.testing.assert_allclose(mcts.prior_probability[board], expected)
+
+
+@pytest.mark.unit
+def test_search_expands_beyond_root_with_repeated_calls(tiny_game, uniform_nnet):
+    mcts = MCTS(uniform_nnet, tiny_game, dotdict({"simulation_num": 10, "c_puct": 5}))
+    board, player = tiny_game.get_initial_state()
+
+    mcts.search(board, player)
+    assert board in mcts.prior_probability
+
+    for _ in range(20):
         mcts.search(board, player)
-        self.assertIn(board, mcts.prior_probability)
 
-    def test_multiple_searches_build_tree(self):
-        mcts = MCTS(self.nnet, self.game, self.args)
-        board, player = self.game.get_initial_state()
-        for _ in range(20):
-            mcts.search(board, player)
-        # Tree should have expanded beyond root
-        self.assertGreater(len(mcts.prior_probability), 1)
+    assert len(mcts.prior_probability) > 1
 
 
-class TestMCTSWithWinningMove(unittest.TestCase):
-    """Test MCTS when there's an obvious winning move."""
+@pytest.mark.unit
+def test_simulate_handles_single_forced_winning_move(tiny_game, uniform_nnet):
+    mcts = MCTS(uniform_nnet, tiny_game, dotdict({"simulation_num": 200, "c_puct": 5}))
 
-    def setUp(self):
-        self.game = SimpleBoardGame()
-        self.nnet = UniformNNet()
-        self.args = dotdict({"simulation_num": 200, "c_puct": 5})
-
-    def test_finds_winning_move(self):
-        """When one move wins, MCTS should overwhelmingly select it."""
-        # Board: B.B - placing at position 1 wins for BLACK's previous turn
-        # Actually let's think about this differently:
-        # Board "B.." with BLACK having played position 0
-        # Now it's WHITE's turn, but let's set up a position where
-        # the current player has a winning move
-        mcts = MCTS(self.nnet, self.game, self.args)
-        # Board: "B.." - WHITE to move, if WHITE plays 1 -> "BW." no win
-        # Better: position after B plays 0, W plays 2 -> "B.W"
-        # Now B to move, B plays 1 -> "BBW" - B wins (adjacent BB)
-        board = "B.W"
-        player = _ChessType.BLACK
-        actions, counts = mcts.simulate(board, player)
-        # Only action 1 is available and it's a win
-        self.assertEqual(list(actions), [1])
-        self.assertEqual(int(counts[0]), self.args.simulation_num - 1)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    actions, counts = mcts.simulate("B.W", _ChessType.BLACK)
+    assert list(actions) == [1]
+    assert int(counts[0]) == 199
