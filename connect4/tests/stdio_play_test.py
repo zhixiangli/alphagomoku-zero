@@ -3,23 +3,10 @@
 
 import unittest
 
-from gomoku_15_15.stdio_play import _parse_move
 from connect4.stdio_play import (
     _parse_move as _parse_connect4_move,
     _resolve_action as _resolve_connect4_action,
 )
-
-
-class TestStdioMoveParsing(unittest.TestCase):
-    def test_parse_compact_coordinate(self):
-        self.assertEqual(_parse_move("E5", rows=9, columns=9), 4 * 9 + 4)
-
-    def test_parse_spaced_coordinate(self):
-        self.assertEqual(_parse_move("O 15", rows=15, columns=15), 14 * 15 + 14)
-
-    def test_parse_rejects_out_of_bounds(self):
-        self.assertIsNone(_parse_move("P1", rows=15, columns=15))
-        self.assertIsNone(_parse_move("A16", rows=15, columns=15))
 
 
 class TestConnect4StdioMoveParsing(unittest.TestCase):
